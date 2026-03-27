@@ -28,6 +28,7 @@ class User(db.Model):
     skills = db.Column(db.String(255), default='') # comma separated
     interests = db.Column(db.String(255), default='')
     availability = db.Column(db.String(100), default='')
+    is_available_now = db.Column(db.Boolean, default=False)
 
     # NGO specifics
     mission = db.Column(db.Text, default='')
@@ -43,6 +44,19 @@ class Opportunity(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     ngo = db.relationship('User', backref=db.backref('opportunities', lazy=True))
+
+class Application(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    volunteer_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    opportunity_id = db.Column(db.Integer, db.ForeignKey('opportunity.id'), nullable=False)
+    location = db.Column(db.String(100), default='')
+    skills = db.Column(db.String(255), default='')
+    interests = db.Column(db.String(255), default='')
+    availability = db.Column(db.String(100), default='')
+    is_available_now = db.Column(db.Boolean, default=False)
+    
+    volunteer = db.relationship('User', foreign_keys=[volunteer_id], backref=db.backref('applications', lazy=True))
+    opportunity = db.relationship('Opportunity', backref=db.backref('applications', lazy=True))
 
 with app.app_context():
     db.create_all()
@@ -75,16 +89,12 @@ def register():
             role=role, 
             name=name, 
             email=email, 
-            password=generate_password_hash(password),
-            location=location
+            password=generate_password_hash(password)
         )
         
-        if role == 'volunteer':
-            new_user.skills = request.form.get('skills', '')
-            new_user.interests = request.form.get('interests', '')
-            new_user.availability = request.form.get('availability', '')
-        elif role == 'ngo':
+        if role == 'ngo':
             new_user.mission = request.form.get('mission', '')
+            new_user.location = request.form.get('location', '')
 
         db.session.add(new_user)
         db.session.commit()
@@ -102,6 +112,7 @@ def login():
         
         if user and check_password_hash(user.password, password):
             session['user_id'] = user.id
+            session['role'] = user.role
             flash('Logged in successfully.', 'success')
             if user.role == 'volunteer':
                 return redirect(url_for('volunteer_dashboard'))
@@ -115,6 +126,7 @@ def login():
 @app.route('/logout')
 def logout():
     session.pop('user_id', None)
+    session.pop('role', None)
     return redirect(url_for('index'))
 
 @app.route('/volunteer')
@@ -147,7 +159,16 @@ def ngo_dashboard():
     if user.role != 'ngo': return redirect(url_for('index'))
     
     opps = Opportunity.query.filter_by(ngo_id=user.id).all()
-    return render_template('ngo_dashboard.html', user=user, opps=opps)
+    opp_ids = [o.id for o in opps]
+    applications = Application.query.filter(Application.opportunity_id.in_(opp_ids)).all() if opp_ids else []
+    
+    # Compute Match % for each application
+    for app_rec in applications:
+        u_skills = [s.strip().lower() for s in app_rec.skills.split(',')] if app_rec.skills else []
+        o_skills = [s.strip().lower() for s in app_rec.opportunity.skills_required.split(',')] if app_rec.opportunity.skills_required else []
+        app_rec.match_percent = len(set(u_skills).intersection(set(o_skills))) * 15 + 50
+        
+    return render_template('ngo_dashboard.html', user=user, opps=opps, applications=applications)
 
 @app.route('/opportunity/new', methods=['GET', 'POST'])
 def new_opportunity():
@@ -176,6 +197,45 @@ def new_opportunity():
         return redirect(url_for('ngo_dashboard'))
         
     return render_template('new_opportunity.html')
+
+@app.route('/apply', methods=['GET', 'POST'])
+def make_application():
+    if 'user_id' not in session: return redirect(url_for('login'))
+    user = User.query.get(session['user_id'])
+    if user.role != 'volunteer': return redirect(url_for('index'))
+    
+    opps = Opportunity.query.all()
+    preselected_opp = request.args.get('opp_id')
+    
+    if request.method == 'POST':
+        opp_id = request.form.get('opportunity_id')
+        location = request.form.get('location')
+        skills = request.form.get('skills')
+        interests = request.form.get('interests')
+        availability = request.form.get('availability')
+        is_available_now = True if request.form.get('is_available_now') == 'on' else False
+        
+        user.location = location
+        user.skills = skills
+        user.interests = interests
+        user.availability = availability
+        user.is_available_now = is_available_now
+        
+        app_record = Application(
+            volunteer_id=user.id,
+            opportunity_id=opp_id,
+            location=location,
+            skills=skills,
+            interests=interests,
+            availability=availability,
+            is_available_now=is_available_now
+        )
+        db.session.add(app_record)
+        db.session.commit()
+        flash('Application submitted successfully!', 'success')
+        return redirect(url_for('volunteer_dashboard'))
+        
+    return render_template('make_application.html', user=user, opps=opps, preselected_opp=preselected_opp)
 
 @app.route('/log_hours', methods=['POST'])
 def log_hours():

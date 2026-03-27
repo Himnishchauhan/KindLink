@@ -58,9 +58,13 @@
                     
                     <div class="match-tags">
                         <span class="tag">🕒 {{ match.opportunity.duration }}</span>
-                        <span class="tag">🔧 {{ match.opportunity.skills_required }}</span>
+                        {% for skill in match.opportunity.skills_required.split(',') %}
+                            {% if skill.strip() %}
+                            <span class="tag">#{{ skill.strip().lower()|replace(' ', '') }}</span>
+                            {% endif %}
+                        {% endfor %}
                     </div>
-                    <button class="btn btn-primary btn-sm btn-block mt-3" onclick="alert('In a full version, this would connect you to the NGO via email or in-app messaging.')">Apply Now</button>
+                    <a href="{{ url_for('make_application', opp_id=match.opportunity.id) }}" class="btn btn-primary btn-sm btn-block mt-3" style="text-align: center; display: block;">Apply Now</a>
                 </div>
                 {% endfor %}
             {% else %}

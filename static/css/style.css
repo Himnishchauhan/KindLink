@@ -42,7 +42,7 @@ a:hover {
 }
 
 .container {
-    max-width: 1000px; /* narrowed down slightly for minimal readable lengths */
+    max-width: 1400px; /* narrowed down slightly for minimal readable lengths */
     margin: 0 auto;
     padding: 0 2rem;
 }
@@ -156,7 +156,9 @@ a:hover {
 }
 
 .glass-container.auth-form-container {
-    padding: 3rem 2.5rem;
+    padding: 3rem;
+    width: 70vw;
+    max-width: 100%;
 }
 
 /* Flash msg */

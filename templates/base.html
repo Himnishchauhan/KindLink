@@ -16,6 +16,9 @@
             </a>
             <div class="nav-links">
                 {% if 'user_id' in session %}
+                    {% if session.get('role') == 'volunteer' %}
+                        <a href="{{ url_for('make_application') }}" class="nav-link">Make An Application</a>
+                    {% endif %}
                     <a href="{{ url_for('logout') }}" class="btn btn-outline">Logout</a>
                 {% else %}
                     <a href="{{ url_for('login') }}" class="nav-link">Login</a>

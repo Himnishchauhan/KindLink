@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="auth-wrapper container">
+    <div class="glass-container auth-form-container login-container" style="max-width: 800px;">
+        <h2>Make An Application</h2>
+        <p class="subtitle">Complete your profile details to submit an application to the NGO.</p>
+        
+        <form method="POST" action="{{ url_for('make_application') }}">
+            
+            <div class="form-group">
+                <label for="opportunity_id">Select Opportunity (If Any Specific Opportunity in Mind)</label>
+                <select id="opportunity_id" name="opportunity_id" class="form-control" required>
+                    <option value="" disabled {% if not preselected_opp %}selected{% endif %}>-- Select an NGO Opportunity --</option>
+                    {% for opp in opps %}
+                        <option value="{{ opp.id }}" {% if preselected_opp == opp.id|string %}selected{% endif %}>
+                            {{ opp.title }} (by {{ opp.ngo.name }})
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="location">Your Location</label>
+                <input type="text" id="location" name="location" class="form-control" placeholder="e.g. Mumbai, Delhi" required>
+            </div>
+
+            <div class="form-group">
+                <label for="skills">Your Skills (Comma separated)</label>
+                <input type="text" id="skills" name="skills" class="form-control" placeholder="e.g. Teaching, Design, Coding" required>
+            </div>
+
+            <div class="form-group">
+                <label for="interests">Interests (Comma separated)</label>
+                <input type="text" id="interests" name="interests" class="form-control" placeholder="e.g. Education, Environment" required>
+            </div>
+
+            <div class="form-group">
+                <label for="availability">Availability</label>
+                <input type="text" id="availability" name="availability" class="form-control" placeholder="e.g. 2 hours/week, Oct 1st - Nov 1st" required>
+            </div>
+            <div class="form-group" style="display: flex; align-items: center; gap: 0.5rem; margin-top: 1rem; margin-bottom: 2rem;">
+                <input type="checkbox" id="is_available_now" name="is_available_now" style="width: 20px; height: 20px;" {% if user.is_available_now %}checked{% endif %}>
+                <label for="is_available_now" style="margin: 0; font-weight: 500;">I am available right now (Real-time Availability)</label>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block">Submit Application</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

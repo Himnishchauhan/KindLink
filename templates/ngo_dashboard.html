@@ -14,17 +14,17 @@
 
     <!-- Analytics Section -->
     <section class="analytics-section">
-        <h3>Volunteer Engagement Analytics 📈</h3>
+        <h3>Volunteer Engagement Analytics</h3>
         <div class="analytics-grid">
-            <div class="stat-card glass-card">
+            <div class="feature-card glass-card">
                 <h4>Active Opportunities</h4>
                 <div class="stat-large">{{ opps|length }}</div>
             </div>
-            <div class="stat-card glass-card">
+            <div class="feature-card glass-card">
                 <h4>Total Reach</h4>
                 <div class="stat-large">{{ (opps|length) * 12 }} <small>volunteers</small></div>
             </div>
-            <div class="stat-card glass-card">
+            <div class="feature-card glass-card">
                 <h4>Trending Skill Needed</h4>
                 <div class="stat-desc">Education / Mentorship</div>
             </div>
@@ -36,23 +36,57 @@
         <h3>Your Current Needs</h3>
         <div class="matches-grid">
             {% if opps %}
-                {% for opp in opps %}
+            {% for opp in opps %}
+            <div class="match-card glass-card hover-lift">
+                <div class="match-header">
+                    <h4>{{ opp.title }}</h4>
+                    <span class="status active">Active</span>
+                </div>
+                <p class="match-desc">{{ opp.description[:100] }}...</p>
+
+                <div class="match-tags">
+                    <span class="tag">📅 {{ opp.duration }}</span>
+                    <span class="tag">🎯 {{ opp.skills_required }}</span>
+                </div>
+            </div>
+            {% endfor %}
+            {% else %}
+            <div class="empty-state">
+                <p>No active opportunities. Post one to start connecting with volunteers!</p>
+            </div>
+            {% endif %}
+        </div>
+    </section>
+
+    <!-- Applications Received -->
+    <section class="opps-section" style="margin-top: 3rem;">
+        <h3>Applications Received</h3>
+        <div class="matches-grid">
+            {% if applications %}
+                {% for app in applications %}
                 <div class="match-card glass-card hover-lift">
-                    <div class="match-header">
-                        <h4>{{ opp.title }}</h4>
-                        <span class="status active">Active</span>
+                    <div class="match-header" style="align-items: center;">
+                        <h4 style="display:flex; align-items:center; gap:0.5rem;">
+                            {{ app.volunteer.name }}
+                            {% if app.is_available_now %}
+                            <span style="font-size:0.75rem; background:#dcfce7; color:#166534; padding:2px 8px; border-radius:12px; white-space:nowrap;">⚡ Available Now</span>
+                            {% endif %}
+                        </h4>
+                        <span class="status active" style="background:#e0e7ff; color:#3730a3;">{{ app.opportunity.title }}</span>
                     </div>
-                    <p class="match-desc">{{ opp.description[:100] }}...</p>
-                    
-                    <div class="match-tags">
-                        <span class="tag">📅 {{ opp.duration }}</span>
-                        <span class="tag">🎯 {{ opp.skills_required }}</span>
-                    </div>
+                    <div><span class="match-score" style="display:inline-block; margin-top:0.5rem; background:#f0fdf4; color:#38a169; padding:0.2rem 0.6rem; border-radius:4px; font-size:0.8rem; font-weight:500;">Match Score: {{ app.match_percent }}%</span></div>
+                    <p class="match-desc" style="font-size: 0.9rem; margin-top: 0.5rem;">
+                        <strong>Skills:</strong> {{ app.skills }}<br>
+                        <strong>Interests:</strong> {{ app.interests }}<br>
+                        <strong>Location:</strong> {{ app.location }}<br>
+                        <strong>Availability:</strong> {{ app.availability }}
+                    </p>
+                    <button class="btn btn-outline btn-sm btn-block mt-3" onclick="alert('Contacting {{ app.volunteer.name }} at {{ app.volunteer.email }}')">Contact Volunteer</button>
                 </div>
                 {% endfor %}
             {% else %}
                 <div class="empty-state">
-                    <p>No active opportunities. Post one to start connecting with volunteers!</p>
+                    <p>No applications received yet.</p>
                 </div>
             {% endif %}
         </div>
