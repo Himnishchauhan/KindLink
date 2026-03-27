@@ -1,12 +1,6 @@
-# Byte-compiled / optimized / DLL files
-__pycache__/
+# Python caches
 *.py[cod]
 *$py.class
-
-# Database
-*.db
-*.sqlite3
-instance/
 
 # Flask stuff
 .env
