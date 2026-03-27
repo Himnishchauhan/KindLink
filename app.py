@@ -56,6 +56,7 @@ class Application(db.Model):
     availability = db.Column(db.String(100), default='')
     is_available_now = db.Column(db.Boolean, default=False)
     is_completed = db.Column(db.Boolean, default=False)
+    status = db.Column(db.String(20), default='pending')
     
     volunteer = db.relationship('User', foreign_keys=[volunteer_id], backref=db.backref('applications', lazy=True))
     opportunity = db.relationship('Opportunity', backref=db.backref('applications', lazy=True))
@@ -321,6 +322,36 @@ def edit_profile():
             
     return render_template('edit_profile.html', user=user)
 
+@app.route('/application/accept/<int:app_id>', methods=['POST'])
+def accept_application(app_id):
+    if 'user_id' not in session: return redirect(url_for('login'))
+    user = User.query.get(session['user_id'])
+    if user.role != 'ngo': return redirect(url_for('index'))
+    
+    app_record = Application.query.get_or_404(app_id)
+    if app_record.opportunity.ngo_id != user.id:
+        return redirect(url_for('ngo_dashboard'))
+        
+    app_record.status = 'accepted'
+    db.session.commit()
+    flash('Application accepted!', 'success')
+    return redirect(url_for('ngo_dashboard'))
+
+@app.route('/application/decline/<int:app_id>', methods=['POST'])
+def decline_application(app_id):
+    if 'user_id' not in session: return redirect(url_for('login'))
+    user = User.query.get(session['user_id'])
+    if user.role != 'ngo': return redirect(url_for('index'))
+    
+    app_record = Application.query.get_or_404(app_id)
+    if app_record.opportunity.ngo_id != user.id:
+        return redirect(url_for('ngo_dashboard'))
+        
+    app_record.status = 'declined'
+    db.session.commit()
+    flash('Application declined.', 'info')
+    return redirect(url_for('ngo_dashboard'))
+
 
 @app.route('/complete_application/<int:app_id>', methods=['POST'])
 def complete_application(app_id):
@@ -334,6 +365,10 @@ def complete_application(app_id):
         
     if getattr(app_record, 'is_completed', False):
         flash('Already marked as completed', 'error')
+        return redirect(url_for('ngo_dashboard'))
+        
+    if getattr(app_record, 'status', 'pending') != 'accepted':
+        flash('Must accept the application first', 'error')
         return redirect(url_for('ngo_dashboard'))
         
     hours_awarded = int(request.form.get('hours', 0))

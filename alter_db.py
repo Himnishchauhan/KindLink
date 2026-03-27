@@ -9,9 +9,9 @@ if not os.path.exists(db_path):
 conn = sqlite3.connect(db_path)
 cursor = conn.cursor()
 try:
-    cursor.execute("UPDATE user SET badges = ''")
-    print("Reset badges to empty for all users.")
+    cursor.execute("ALTER TABLE application ADD COLUMN status VARCHAR(20) DEFAULT 'pending'")
     conn.commit()
+    print("Added status column successfully.")
 except Exception as e:
     print("Error:", e)
 finally:
