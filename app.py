@@ -42,6 +42,7 @@ class Opportunity(db.Model):
     skills_required = db.Column(db.String(255), default='')
     duration = db.Column(db.String(100), default='')
     location = db.Column(db.String(100), default='Local')
+    is_urgent = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     ngo = db.relationship('User', backref=db.backref('opportunities', lazy=True))
@@ -150,6 +151,12 @@ def volunteer_dashboard():
         overlap = set(user_skills).intersection(set(opp_skills))
         score = len(overlap)
         
+        # Boost for urgent opportunities
+        if opp.is_urgent:
+            score += 2 # slight base boost for urgency
+            if user.is_available_now:
+                score += 5 # massive prioritized boost for available volunteers
+        
         matches.append({'opportunity': opp, 'score': score})
     
     # Sort by score desc
@@ -176,6 +183,9 @@ def ngo_dashboard():
         o_skills = [s.strip().lower() for s in app_rec.opportunity.skills_required.split(',')] if app_rec.opportunity.skills_required else []
         app_rec.match_percent = len(set(u_skills).intersection(set(o_skills))) * 15 + 50
         
+    # Prioritize available volunteers (especially for urgent opps)
+    applications.sort(key=lambda a: (a.is_available_now and a.opportunity.is_urgent, a.is_available_now, a.match_percent), reverse=True)
+        
     # Calculate trending skill (most requested globally)
     all_opps_platform = Opportunity.query.all()
     skill_counts = {}
@@ -200,6 +210,7 @@ def new_opportunity():
         skills_required = request.form.get('skills_required')
         duration = request.form.get('duration')
         location = request.form.get('location')
+        is_urgent = True if request.form.get('is_urgent') == 'on' else False
         
         opp = Opportunity(
             ngo_id=user.id,
@@ -207,7 +218,8 @@ def new_opportunity():
             description=description,
             skills_required=skills_required,
             duration=duration,
-            location=location
+            location=location,
+            is_urgent=is_urgent
         )
         db.session.add(opp)
         db.session.commit()
@@ -233,6 +245,7 @@ def edit_opportunity(opp_id):
         opp.skills_required = request.form.get('skills_required')
         opp.duration = request.form.get('duration')
         opp.location = request.form.get('location')
+        opp.is_urgent = True if request.form.get('is_urgent') == 'on' else False
         
         db.session.commit()
         flash('Opportunity updated successfully!', 'success')

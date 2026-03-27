@@ -9,9 +9,9 @@ if not os.path.exists(db_path):
 conn = sqlite3.connect(db_path)
 cursor = conn.cursor()
 try:
-    cursor.execute("ALTER TABLE application ADD COLUMN status VARCHAR(20) DEFAULT 'pending'")
+    cursor.execute("ALTER TABLE opportunity ADD COLUMN is_urgent BOOLEAN DEFAULT 0")
     conn.commit()
-    print("Added status column successfully.")
+    print("Added is_urgent column successfully.")
 except Exception as e:
     print("Error:", e)
 finally:

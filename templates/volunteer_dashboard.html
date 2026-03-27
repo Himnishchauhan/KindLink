@@ -17,6 +17,10 @@
                 <span class="stat-number">{{ badge_list|length }}</span>
                 <span class="stat-label">Badges Earned</span>
             </div>
+        </div>
+        <div class="action-buttons">
+            <a href="{{ url_for('edit_profile') }}" class="btn btn-secondary">Edit Profile</a>
+        </div>
     </div>
 
     <!-- Gamification Section -->
@@ -45,8 +49,13 @@
             {% if matches %}
                 {% for match in matches %}
                 <div class="match-card glass-card hover-lift">
-                    <div class="match-header">
-                        <h4>{{ match.opportunity.title }}</h4>
+                    <div class="match-header" style="align-items: center;">
+                        <h4 style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
+                            {{ match.opportunity.title }}
+                            {% if match.opportunity.is_urgent %}
+                            <span style="font-size:0.75rem; background:#fee2e2; color:#b91c1c; padding:2px 8px; border-radius:12px; white-space:nowrap; border:1px solid #fca5a5;">🚨 URGENT</span>
+                            {% endif %}
+                        </h4>
                         <span class="match-score">{{ match.score * 15 + 50 }}% Match</span>
                     </div>
                     <p class="match-org">by <strong>{{ match.opportunity.ngo.name }}</strong> (<a href="https://www.google.com/maps/search/?api=1&query={{ match.opportunity.location | urlencode }}+India" target="_blank" style="color: inherit; text-decoration: underline;"><i class="fa fa-map-marker" aria-hidden="true" style="margin-right:2px;"></i>{{ match.opportunity.location }}</a>)</p>
