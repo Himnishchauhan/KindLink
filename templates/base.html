@@ -19,6 +19,7 @@
                     {% if session.get('role') == 'volunteer' %}
                         <a href="{{ url_for('make_application') }}" class="nav-link">Make An Application</a>
                     {% endif %}
+                    <a href="{{ url_for('edit_profile') }}" class="nav-link">Edit Profile</a>
                     <a href="{{ url_for('logout') }}" class="btn btn-outline">Logout</a>
                 {% else %}
                     <a href="{{ url_for('login') }}" class="nav-link">Login</a>
@@ -51,5 +52,54 @@
     </footer>
     
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            // HACKATHON NOTE: Using LocationIQ Free Tier for API Key requirement
+            // Get your 100% free API key at https://locationiq.com/
+            const API_KEY = "YOUR_FREE_LOCATIONIQ_API_KEY"; 
+            
+            const locInputs = document.querySelectorAll('input[name="location"]');
+            locInputs.forEach((input, index) => {
+                const dataListId = 'location_datalist_' + index;
+                input.setAttribute('list', dataListId);
+                const dataList = document.createElement('datalist');
+                dataList.id = dataListId;
+                input.parentNode.appendChild(dataList);
+
+                let timeout = null;
+                input.addEventListener('input', function() {
+                    clearTimeout(timeout);
+                    const query = this.value;
+                    if(query.length < 3) return;
+                    
+                    timeout = setTimeout(() => {
+                        // If you haven't put your API key yet, it effortlessly falls back to the fully free OpenStreetMap API so your app doesn't break!
+                        let apiUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&countrycodes=in&limit=5`;
+                        
+                        if (API_KEY !== "YOUR_FREE_LOCATIONIQ_API_KEY") {
+                            apiUrl = `https://us1.locationiq.com/v1/autocomplete.php?key=${API_KEY}&q=${encodeURIComponent(query)}&countrycodes=in&limit=5&format=json`;
+                        }
+
+                        fetch(apiUrl)
+                        .then(r => r.json())
+                        .then(data => {
+                            dataList.innerHTML = '';
+                            const added = new Set();
+                            data.forEach(item => {
+                                const parts = item.display_name.split(',');
+                                const name = parts[0].trim() + (parts.length > 1 ? ", " + parts[parts.length-2].trim() : "");
+                                if(!added.has(name)) {
+                                    added.add(name);
+                                    const option = document.createElement('option');
+                                    option.value = name;
+                                    dataList.appendChild(option);
+                                }
+                            });
+                        }).catch(e => console.log('Autocomplete error:', e));
+                    }, 400);
+                });
+            });
+        });
+    </script>
 </body>
 </html>

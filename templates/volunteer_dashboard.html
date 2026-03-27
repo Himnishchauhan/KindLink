@@ -5,7 +5,7 @@
     <div class="dashboard-header glass-card">
         <div class="profile-summary">
             <h2>Welcome back, <span class="highlight">{{ user.name }}</span></h2>
-            <p class="profile-meta">Location: {{ user.location }} | Skills: {{ user.skills }}</p>
+            <p class="profile-meta">Location: <a href="https://www.google.com/maps/search/?api=1&query={{ user.location | urlencode }}+India" target="_blank" style="color: inherit; text-decoration: underline;"><i class="fa fa-map-marker" aria-hidden="true" style="margin-right:2px;"></i>{{ user.location }}</a> | Skills: {{ user.skills }}</p>
         </div>
         <div class="impact-stats">
             <div class="stat-box gradient-1">
@@ -17,10 +17,6 @@
                 <span class="stat-number">{{ badge_list|length }}</span>
                 <span class="stat-label">Badges Earned</span>
             </div>
-        </div>
-        <div class="action-buttons">
-            <button class="btn btn-secondary" onclick="logHoursModal()">Log Hours</button>
-        </div>
     </div>
 
     <!-- Gamification Section -->
@@ -53,7 +49,7 @@
                         <h4>{{ match.opportunity.title }}</h4>
                         <span class="match-score">{{ match.score * 15 + 50 }}% Match</span>
                     </div>
-                    <p class="match-org">by <strong>{{ match.opportunity.ngo.name }}</strong> ({{ match.opportunity.location }})</p>
+                    <p class="match-org">by <strong>{{ match.opportunity.ngo.name }}</strong> (<a href="https://www.google.com/maps/search/?api=1&query={{ match.opportunity.location | urlencode }}+India" target="_blank" style="color: inherit; text-decoration: underline;"><i class="fa fa-map-marker" aria-hidden="true" style="margin-right:2px;"></i>{{ match.opportunity.location }}</a>)</p>
                     <p class="match-desc">{{ match.opportunity.description[:100] }}...</p>
                     
                     <div class="match-tags">
@@ -76,22 +72,4 @@
     </section>
 </div>
 
-<!-- Simple inline script for modal mock -->
-<script>
-    function logHoursModal() {
-        let hours = prompt("How many hours did you volunteer?");
-        if(hours && !isNaN(hours)) {
-            fetch("{{ url_for('log_hours') }}", {
-                method: "POST",
-                headers: {"Content-Type": "application/json"},
-                body: JSON.stringify({hours: hours})
-            }).then(r => r.json()).then(data => {
-                if(data.success) {
-                    alert("Hours logged successfully! Check your new total.");
-                    window.location.reload();
-                }
-            });
-        }
-    }
-</script>
 {% endblock %}

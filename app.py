@@ -18,6 +18,7 @@ class User(db.Model):
     name = db.Column(db.String(100), nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password = db.Column(db.String(200), nullable=False)
+    mobile = db.Column(db.String(20), default='')
     
     # Common stats
     hours_logged = db.Column(db.Integer, default=0)
@@ -54,6 +55,7 @@ class Application(db.Model):
     interests = db.Column(db.String(255), default='')
     availability = db.Column(db.String(100), default='')
     is_available_now = db.Column(db.Boolean, default=False)
+    is_completed = db.Column(db.Boolean, default=False)
     
     volunteer = db.relationship('User', foreign_keys=[volunteer_id], backref=db.backref('applications', lazy=True))
     opportunity = db.relationship('Opportunity', backref=db.backref('applications', lazy=True))
@@ -79,6 +81,7 @@ def register():
         name = request.form.get('name')
         email = request.form.get('email')
         password = request.form.get('password')
+        mobile = request.form.get('mobile', '')
         location = request.form.get('location', 'Local')
         
         if User.query.filter_by(email=email).first():
@@ -89,7 +92,8 @@ def register():
             role=role, 
             name=name, 
             email=email, 
-            password=generate_password_hash(password)
+            password=generate_password_hash(password),
+            mobile=mobile
         )
         
         if role == 'ngo':
@@ -162,13 +166,26 @@ def ngo_dashboard():
     opp_ids = [o.id for o in opps]
     applications = Application.query.filter(Application.opportunity_id.in_(opp_ids)).all() if opp_ids else []
     
+    unique_volunteer_ids = {app_rec.volunteer_id for app_rec in applications}
+    total_reach = len(unique_volunteer_ids)
+    
     # Compute Match % for each application
     for app_rec in applications:
         u_skills = [s.strip().lower() for s in app_rec.skills.split(',')] if app_rec.skills else []
         o_skills = [s.strip().lower() for s in app_rec.opportunity.skills_required.split(',')] if app_rec.opportunity.skills_required else []
         app_rec.match_percent = len(set(u_skills).intersection(set(o_skills))) * 15 + 50
         
-    return render_template('ngo_dashboard.html', user=user, opps=opps, applications=applications)
+    # Calculate trending skill (most requested globally)
+    all_opps_platform = Opportunity.query.all()
+    skill_counts = {}
+    for o in all_opps_platform:
+        if o.skills_required:
+            skills = [s.strip().title() for s in o.skills_required.split(',') if s.strip()]
+            for s in skills:
+                skill_counts[s] = skill_counts.get(s, 0) + 1
+    trending_skill = max(skill_counts, key=skill_counts.get) if skill_counts else "None yet"
+        
+    return render_template('ngo_dashboard.html', user=user, opps=opps, applications=applications, trending_skill=trending_skill, total_reach=total_reach)
 
 @app.route('/opportunity/new', methods=['GET', 'POST'])
 def new_opportunity():
@@ -197,6 +214,30 @@ def new_opportunity():
         return redirect(url_for('ngo_dashboard'))
         
     return render_template('new_opportunity.html')
+
+@app.route('/opportunity/edit/<int:opp_id>', methods=['GET', 'POST'])
+def edit_opportunity(opp_id):
+    if 'user_id' not in session: return redirect(url_for('login'))
+    user = User.query.get(session['user_id'])
+    if user.role != 'ngo': return redirect(url_for('index'))
+    
+    opp = Opportunity.query.get_or_404(opp_id)
+    if opp.ngo_id != user.id:
+        flash('Unauthorized to edit this opportunity.', 'error')
+        return redirect(url_for('ngo_dashboard'))
+        
+    if request.method == 'POST':
+        opp.title = request.form.get('title')
+        opp.description = request.form.get('description')
+        opp.skills_required = request.form.get('skills_required')
+        opp.duration = request.form.get('duration')
+        opp.location = request.form.get('location')
+        
+        db.session.commit()
+        flash('Opportunity updated successfully!', 'success')
+        return redirect(url_for('ngo_dashboard'))
+        
+    return render_template('edit_opportunity.html', opp=opp)
 
 @app.route('/apply', methods=['GET', 'POST'])
 def make_application():
@@ -237,26 +278,79 @@ def make_application():
         
     return render_template('make_application.html', user=user, opps=opps, preselected_opp=preselected_opp)
 
-@app.route('/log_hours', methods=['POST'])
-def log_hours():
-    if 'user_id' not in session: return jsonify({'error': 'Unauthorized'}), 401
+@app.route('/edit_profile', methods=['GET', 'POST'])
+def edit_profile():
+    if 'user_id' not in session: return redirect(url_for('login'))
     user = User.query.get(session['user_id'])
-    if user.role != 'volunteer': return jsonify({'error': 'Unauthorized'}), 401
     
-    data = request.json
-    hours = int(data.get('hours', 0))
-    user.hours_logged += hours
+    if request.method == 'POST':
+        name = request.form.get('name')
+        email = request.form.get('email')
+        password = request.form.get('password')
+        mobile = request.form.get('mobile', '')
+        location = request.form.get('location')
+
+        existing_user = User.query.filter_by(email=email).first()
+        if existing_user and existing_user.id != user.id:
+            flash('Email already exists. Please use a different one.', 'error')
+            return redirect(url_for('edit_profile'))
+
+        user.name = name
+        user.email = email
+        user.mobile = mobile
+        if location:
+            user.location = location
+            
+        if password: # update only if provided
+            user.password = generate_password_hash(password)
+            
+        if user.role == 'ngo':
+            user.mission = request.form.get('mission', user.mission)
+        else:
+            user.skills = request.form.get('skills', user.skills)
+            user.interests = request.form.get('interests', user.interests)
+            user.availability = request.form.get('availability', user.availability)
+            user.is_available_now = True if request.form.get('is_available_now') == 'on' else False
+            
+        db.session.commit()
+        flash('Profile updated successfully!', 'success')
+        if user.role == 'volunteer':
+            return redirect(url_for('volunteer_dashboard'))
+        else:
+            return redirect(url_for('ngo_dashboard'))
+            
+    return render_template('edit_profile.html', user=user)
+
+
+@app.route('/complete_application/<int:app_id>', methods=['POST'])
+def complete_application(app_id):
+    if 'user_id' not in session: return redirect(url_for('login'))
+    user = User.query.get(session['user_id'])
+    if user.role != 'ngo': return redirect(url_for('index'))
+    
+    app_record = Application.query.get_or_404(app_id)
+    if app_record.opportunity.ngo_id != user.id:
+        return redirect(url_for('ngo_dashboard'))
+        
+    if getattr(app_record, 'is_completed', False):
+        flash('Already marked as completed', 'error')
+        return redirect(url_for('ngo_dashboard'))
+        
+    hours_awarded = int(request.form.get('hours', 0))
+    app_record.is_completed = True
+    app_record.volunteer.hours_logged += hours_awarded
     
     # Gamification
-    badges = user.badges.split(',') if user.badges else []
-    if user.hours_logged >= 50 and '50 Hours Master' not in badges:
+    badges = app_record.volunteer.badges.split(',') if app_record.volunteer.badges else []
+    if app_record.volunteer.hours_logged >= 50 and '50 Hours Master' not in badges:
         badges.append('50 Hours Master')
-    if user.hours_logged >= 100 and '100 Hours Legend' not in badges:
+    if app_record.volunteer.hours_logged >= 100 and '100 Hours Legend' not in badges:
         badges.append('100 Hours Legend')
     
-    user.badges = ','.join([b for b in badges if b])
+    app_record.volunteer.badges = ','.join([b for b in badges if b])
     db.session.commit()
-    return jsonify({'success': True, 'hours': user.hours_logged, 'badges': user.badges.split(', ' if user.badges else [])})
+    flash(f"Volunteer marked as completed. {hours_awarded} hours logged!", 'success')
+    return redirect(url_for('ngo_dashboard'))
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)

@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="auth-wrapper container">
+    <div class="glass-container auth-form-container login-container" style="max-width: 800px;">
+        <div style="margin-bottom: 1rem;">
+            <a href="{{ url_for('volunteer_dashboard' if user.role == 'volunteer' else 'ngo_dashboard') }}" style="text-decoration: none; color: var(--primary); font-weight: 500;">&larr; Back to Dashboard</a>
+        </div>
+        <h2>Edit Profile</h2>
+        <p class="subtitle">Update your personal information and preferences.</p>
+        
+        <form method="POST" action="{{ url_for('edit_profile') }}">
+            <div class="form-group">
+                <label for="name">Name / Organization Name</label>
+                <input type="text" id="name" name="name" class="form-control" value="{{ user.name }}" required>
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" name="email" class="form-control" value="{{ user.email }}" required>
+            </div>
+
+            <div class="form-group">
+                <label for="mobile">Mobile Number</label>
+                <input type="tel" id="mobile" name="mobile" class="form-control" value="{{ user.mobile }}" placeholder="e.g. +1 234 567 8900" required>
+            </div>
+
+            <div class="form-group">
+                <label for="password">New Password (leave blank to keep current password)</label>
+                <input type="password" id="password" name="password" class="form-control" placeholder="Enter new password">
+            </div>
+
+            <div class="form-group">
+                <label for="location">Location</label>
+                <input type="text" id="location" name="location" class="form-control" value="{{ user.location }}" required>
+            </div>
+
+            {% if user.role == 'ngo' %}
+            <div class="form-group">
+                <label for="mission">Mission Statement</label>
+                <textarea id="mission" name="mission" class="form-control" rows="4">{{ user.mission }}</textarea>
+            </div>
+            {% else %}
+            <div class="form-group">
+                <label for="skills">Skills (Comma separated)</label>
+                <input type="text" id="skills" name="skills" class="form-control" value="{{ user.skills }}">
+            </div>
+
+            <div class="form-group">
+                <label for="interests">Interests (Comma separated)</label>
+                <input type="text" id="interests" name="interests" class="form-control" value="{{ user.interests }}">
+            </div>
+
+            <div class="form-group">
+                <label for="availability">Availability</label>
+                <input type="text" id="availability" name="availability" class="form-control" value="{{ user.availability }}">
+            </div>
+            
+            <div class="form-group" style="display: flex; align-items: center; gap: 0.5rem; margin-top: 1rem; margin-bottom: 2rem;">
+                <input type="checkbox" id="is_available_now" name="is_available_now" style="width: 20px; height: 20px;" {% if user.is_available_now %}checked{% endif %}>
+                <label for="is_available_now" style="margin: 0; font-weight: 500;">I am available right now (Real-time Availability)</label>
+            </div>
+            {% endif %}
+
+            <button type="submit" class="btn btn-primary btn-block">Save Changes</button>
+        </form>
+    </div>
+</div>
+{% endblock %}
