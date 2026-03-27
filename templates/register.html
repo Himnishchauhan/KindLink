@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="auth-wrapper container">
+    <div class="glass-container auth-form-container">
+        <h2>Join KindLink</h2>
+        <p class="subtitle">Create an account to start your journey.</p>
+        
+        <form method="POST" action="{{ url_for('register') }}" id="registerForm">
+            <div class="form-group row">
+                <label>Register As:</label>
+                <div class="radio-group">
+                    <input type="radio" id="role_volunteer" name="role" value="volunteer" checked onchange="toggleFields()">
+                    <label for="role_volunteer" class="radio-label">Volunteer</label>
+                    
+                    <input type="radio" id="role_ngo" name="role" value="ngo" onchange="toggleFields()">
+                    <label for="role_ngo" class="radio-label">NGO</label>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="name">Full Name / Organization Name</label>
+                <input type="text" id="name" name="name" required class="form-control" placeholder="Jane Doe or Earth Protectors">
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" name="email" required class="form-control" placeholder="you@domain.com">
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" required class="form-control">
+            </div>
+
+            <div class="form-group">
+                <label for="location">Location (City/Region)</label>
+                <input type="text" id="location" name="location" class="form-control" placeholder="e.g. New York, NY">
+            </div>
+
+            <!-- Volunteer Specific Fields -->
+            <div id="volunteerFields" class="dynamic-section">
+                <div class="form-group">
+                    <label for="skills">Your Skills (Comma separated)</label>
+                    <input type="text" id="skills" name="skills" class="form-control" placeholder="e.g. Teaching, Design, Coding">
+                </div>
+                <div class="form-group">
+                    <label for="interests">Interests (Comma separated)</label>
+                    <input type="text" id="interests" name="interests" class="form-control" placeholder="e.g. Education, Environment">
+                </div>
+                <div class="form-group">
+                    <label for="availability">Availability</label>
+                    <select id="availability" name="availability" class="form-control">
+                        <option value="Weekends">Weekends only</option>
+                        <option value="Weekdays">Weekdays only</option>
+                        <option value="Flexible">Flexible / Anytime</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- NGO Specific Fields -->
+            <div id="ngoFields" class="dynamic-section" style="display: none;">
+                <div class="form-group">
+                    <label for="mission">Mission Statement / Description</label>
+                    <textarea id="mission" name="mission" class="form-control" rows="4" placeholder="What does your NGO do?"></textarea>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block">Register</button>
+        </form>
+        <p class="auth-footer">Already have an account? <a href="{{ url_for('login') }}">Login here</a>.</p>
+    </div>
+</div>
+
+<script>
+    function toggleFields() {
+        const isVolunteer = document.getElementById('role_volunteer').checked;
+        document.getElementById('volunteerFields').style.display = isVolunteer ? 'block' : 'none';
+        document.getElementById('ngoFields').style.display = isVolunteer ? 'none' : 'block';
+    }
+
+    // Auto-select role based on query param if present
+    document.addEventListener("DOMContentLoaded", function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const role = urlParams.get('role');
+        if (role === 'ngo') {
+            document.getElementById('role_ngo').checked = true;
+            toggleFields();
+        }
+    });
+</script>
+{% endblock %}

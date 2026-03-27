@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="dashboard container">
+    <div class="dashboard-header glass-card">
+        <div class="profile-summary">
+            <h2>{{ user.name }} Dashboard</h2>
+            <p class="profile-meta">Mission: {{ user.mission[:100] }}...</p>
+        </div>
+        <div class="action-buttons">
+            <a href="{{ url_for('new_opportunity') }}" class="btn btn-primary">+ Post Opportunity</a>
+        </div>
+    </div>
+
+    <!-- Analytics Section -->
+    <section class="analytics-section">
+        <h3>Volunteer Engagement Analytics 📈</h3>
+        <div class="analytics-grid">
+            <div class="stat-card glass-card">
+                <h4>Active Opportunities</h4>
+                <div class="stat-large">{{ opps|length }}</div>
+            </div>
+            <div class="stat-card glass-card">
+                <h4>Total Reach</h4>
+                <div class="stat-large">{{ (opps|length) * 12 }} <small>volunteers</small></div>
+            </div>
+            <div class="stat-card glass-card">
+                <h4>Trending Skill Needed</h4>
+                <div class="stat-desc">Education / Mentorship</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Opportunities Manager -->
+    <section class="opps-section">
+        <h3>Your Current Needs</h3>
+        <div class="matches-grid">
+            {% if opps %}
+                {% for opp in opps %}
+                <div class="match-card glass-card hover-lift">
+                    <div class="match-header">
+                        <h4>{{ opp.title }}</h4>
+                        <span class="status active">Active</span>
+                    </div>
+                    <p class="match-desc">{{ opp.description[:100] }}...</p>
+                    
+                    <div class="match-tags">
+                        <span class="tag">📅 {{ opp.duration }}</span>
+                        <span class="tag">🎯 {{ opp.skills_required }}</span>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="empty-state">
+                    <p>No active opportunities. Post one to start connecting with volunteers!</p>
+                </div>
+            {% endif %}
+        </div>
+    </section>
+</div>
+{% endblock %}

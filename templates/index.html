@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<section class="hero glass">
+    <div class="hero-content">
+        <h1>Connect with Causes that <span class="highlight">Matter</span></h1>
+        <p>KindLink intelligently matches passionate volunteers with impactful NGOs, transforming skills and availability into real-world change.</p>
+        <div class="hero-buttons">
+            <a href="{{ url_for('register') }}?role=volunteer" class="btn btn-primary btn-large">Join as Volunteer</a>
+            <a href="{{ url_for('register') }}?role=ngo" class="btn btn-secondary btn-large">Register your NGO</a>
+        </div>
+    </div>
+    <div class="hero-image">
+        <div class="abstract-shape shape-1"></div>
+        <div class="abstract-shape shape-2"></div>
+        <div class="glass-card mockup-card">
+            <h3>Find your perfect match</h3>
+            <p>Our smart algorithm pairs your unique skills with the ideal volunteer opportunities near you.</p>
+        </div>
+    </div>
+</section>
+
+<section class="features">
+    <div class="container">
+        <h2 class="section-title">How it Works</h2>
+        <div class="grid features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">🔍</div>
+                <h3>Intelligent Matching</h3>
+                <p>We analyze skills, interests, and schedules to find the perfect synergy between volunteers and NGOs.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📅</div>
+                <h3>Seamless Scheduling</h3>
+                <p>Manage your commitments easily with our integrated calendar and automated reminders.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🏅</div>
+                <h3>Gamified Impact</h3>
+                <p>Earn badges, unlock achievements, and visualize your real-world impact as you complete missions.</p>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

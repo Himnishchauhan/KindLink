@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="auth-wrapper container">
+    <div class="glass-container auth-form-container login-container">
+        <h2>Welcome Back</h2>
+        <p class="subtitle">Log in to continue your impact.</p>
+        
+        <form method="POST" action="{{ url_for('login') }}">
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" name="email" required class="form-control" placeholder="you@domain.com">
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" required class="form-control">
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block">Login</button>
+        </form>
+        <p class="auth-footer">Don't have an account? <a href="{{ url_for('register') }}">Sign up here</a>.</p>
+    </div>
+</div>
+{% endblock %}

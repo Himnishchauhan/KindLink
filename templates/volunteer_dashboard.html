@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="dashboard container">
+    <div class="dashboard-header glass-card">
+        <div class="profile-summary">
+            <h2>Welcome back, <span class="highlight">{{ user.name }}</span></h2>
+            <p class="profile-meta">Location: {{ user.location }} | Skills: {{ user.skills }}</p>
+        </div>
+        <div class="impact-stats">
+            <div class="stat-box gradient-1">
+                <span class="stat-number" id="hoursCount">{{ user.hours_logged }}</span>
+                <span class="stat-label">Hours Logged</span>
+            </div>
+            <div class="stat-box gradient-2">
+                {% set badge_list = user.badges.split(',') if user.badges else [] %}
+                <span class="stat-number">{{ badge_list|length }}</span>
+                <span class="stat-label">Badges Earned</span>
+            </div>
+        </div>
+        <div class="action-buttons">
+            <button class="btn btn-secondary" onclick="logHoursModal()">Log Hours</button>
+        </div>
+    </div>
+
+    <!-- Gamification Section -->
+    {% if user.badges %}
+    <section class="badges-section">
+        <h3>Your Achievements 🏅</h3>
+        <div class="badges-grid">
+            {% for badge in user.badges.split(',') %}
+                {% if badge %}
+                <div class="badge-item glass-card tooltip" data-tooltip="Reward for your persistent impact">
+                    <span class="badge-icon">🌟</span>
+                    <span class="badge-name">{{ badge }}</span>
+                </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    <!-- Matching Algorithm Section -->
+    <section class="matches-section">
+        <h3>Recommended Opportunities for You ✨</h3>
+        <p class="section-desc">We found these matches based on your skills and interests.</p>
+        
+        <div class="matches-grid">
+            {% if matches %}
+                {% for match in matches %}
+                <div class="match-card glass-card hover-lift">
+                    <div class="match-header">
+                        <h4>{{ match.opportunity.title }}</h4>
+                        <span class="match-score">{{ match.score * 15 + 50 }}% Match</span>
+                    </div>
+                    <p class="match-org">by <strong>{{ match.opportunity.ngo.name }}</strong> ({{ match.opportunity.location }})</p>
+                    <p class="match-desc">{{ match.opportunity.description[:100] }}...</p>
+                    
+                    <div class="match-tags">
+                        <span class="tag">🕒 {{ match.opportunity.duration }}</span>
+                        <span class="tag">🔧 {{ match.opportunity.skills_required }}</span>
+                    </div>
+                    <button class="btn btn-primary btn-sm btn-block mt-3" onclick="alert('In a full version, this would connect you to the NGO via email or in-app messaging.')">Apply Now</button>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="empty-state">
+                    <p>No opportunities found yet. Keep an eye out or update your skills!</p>
+                </div>
+            {% endif %}
+        </div>
+    </section>
+</div>
+
+<!-- Simple inline script for modal mock -->
+<script>
+    function logHoursModal() {
+        let hours = prompt("How many hours did you volunteer?");
+        if(hours && !isNaN(hours)) {
+            fetch("{{ url_for('log_hours') }}", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({hours: hours})
+            }).then(r => r.json()).then(data => {
+                if(data.success) {
+                    alert("Hours logged successfully! Check your new total.");
+                    window.location.reload();
+                }
+            });
+        }
+    }
+</script>
+{% endblock %}
