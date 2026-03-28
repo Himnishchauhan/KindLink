@@ -395,9 +395,12 @@ def view_volunteers():
 
 @app.route('/ngo/showcase/<int:ngo_id>')
 def ngo_showcase(ngo_id):
-    if 'user_id' not in session: return redirect(url_for('login'))
     ngo = User.query.get_or_404(ngo_id)
     if ngo.role != 'ngo': return redirect(url_for('index'))
+    
+    current_user = None
+    if 'user_id' in session:
+        current_user = User.query.get(session['user_id'])
     
     stories = ImpactStory.query.filter_by(ngo_id=ngo_id).order_by(ImpactStory.created_at.desc()).all()
     return render_template('ngo_showcase.html', ngo=ngo, stories=stories)

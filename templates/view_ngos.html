@@ -90,6 +90,9 @@
                         <a href="{{ url_for('ngo_showcase', ngo_id=item.user.id) }}" class="btn btn-primary btn-sm btn-block" style="padding: 0.8rem; border-radius: 8px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 0.5rem; background: var(--brand-accent); border: none;">
                             <i class="fa-solid fa-rocket"></i> Explore Missions
                         </a>
+                        <a href="{{ url_for('donate') }}" class="btn btn-outline btn-sm btn-block" style="border-color: var(--brand-accent); color: var(--brand-accent); padding: 0.75rem; border-radius: 8px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 0.5rem; background: white;">
+                            <i class="fa-solid fa-heart"></i> Support Impact Fund
+                        </a>
                         <button class="btn btn-outline btn-sm btn-block" style="border-color: #e2e8f0; color: #64748b; padding: 0.75rem; border-radius: 8px;" 
                                 data-name="{{ item.user.name }}"
                                 data-email="{{ item.user.email }}"

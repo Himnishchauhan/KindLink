@@ -2,7 +2,14 @@
 
 {% block content %}
 <div class="container" style="padding: 4rem 1.25rem;">
-    <div class="glass-container" style="max-width: 800px; margin: 0 auto; padding: 4rem; text-align: center;">
+    <div class="glass-container" style="max-width: 800px; margin: 0 auto; padding: 4rem; text-align: center; position: relative;">
+        <!-- Go Back Option -->
+        <div style="position: absolute; top: 1.5rem; left: 1.5rem;">
+            <a href="{{ url_for('view_ngos') }}" style="display: flex; align-items: center; gap: 0.5rem; text-decoration: none; color: var(--text-secondary); font-size: 0.9rem; font-weight: 600; transition: color 0.2s;">
+                <i class="fa-solid fa-arrow-left"></i> Back to Missions
+            </a>
+        </div>
+
         <h2 class="responsive-h1" style="font-size: 3.5rem; font-weight: 900; letter-spacing: -2px; line-height: 1; margin-bottom: 1.5rem;">
             Empower the <span style="color: var(--brand-accent);">Community.</span>
         </h2>

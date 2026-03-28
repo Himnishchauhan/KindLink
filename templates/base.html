@@ -16,7 +16,6 @@
             </a>
             <div class="nav-links" style="position: relative;">
                 {% if 'user_id' in session %}
-                    <a href="{{ url_for('donate') }}" class="nav-item" style="color: var(--brand-accent); font-weight: 700; margin-right: 1rem;">Donate</a>
                     <div class="hamburger-menu" onclick="document.getElementById('navDropdown').classList.toggle('active')">
                         <span></span><span></span><span></span>
                     </div>
@@ -33,7 +32,6 @@
                         <a href="{{ url_for('logout') }}" class="dropdown-link logout-link">Logout</a>
                     </div>
                 {% else %}
-                    <a href="{{ url_for('donate') }}" class="nav-item" style="color: var(--brand-accent); font-weight: 700; margin-right: 1.5rem;">Donate</a>
                     <a href="{{ url_for('login') }}" class="nav-link">Login</a>
                     <a href="{{ url_for('register') }}" class="btn btn-primary">Sign Up</a>
                 {% endif %}
