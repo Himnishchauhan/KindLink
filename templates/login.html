@@ -27,6 +27,19 @@
                         input.type = 'text';
                         icon.classList.remove('fa-eye');
                         icon.classList.add('fa-eye-slash');
+                        
+                        input.addEventListener('click', function hideOnClick() {
+                            if (input.type === 'text') {
+                                input.type = 'password';
+                                icon.classList.remove('fa-eye-slash');
+                                icon.classList.add('fa-eye');
+                                
+                                setTimeout(() => {
+                                    input.setSelectionRange(input.value.length, input.value.length);
+                                }, 0);
+                            }
+                            input.removeEventListener('click', hideOnClick);
+                        });
                     } else {
                         input.type = 'password';
                         icon.classList.remove('fa-eye-slash');
