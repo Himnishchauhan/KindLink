@@ -242,9 +242,9 @@ def delete_impact_story(story_id):
 
 @app.route('/view_ngos')
 def view_ngos():
-    if 'user_id' not in session: return redirect(url_for('login'))
-    user = User.query.get(session['user_id'])
-    if user.role != 'volunteer': return redirect(url_for('index'))
+    user = None
+    if 'user_id' in session:
+        user = User.query.get(session['user_id'])
     
     ngos = User.query.filter_by(role='ngo').all()
     # Prepare NGO data with active opportunity count

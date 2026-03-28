@@ -35,8 +35,26 @@
 
             <div class="form-group">
                 <label for="password">Password</label>
-                <input type="password" id="password" name="password" required class="form-control">
+                <div class="password-wrapper">
+                    <input type="password" id="password" name="password" required class="form-control">
+                    <i class="fa-solid fa-eye password-toggle" onclick="toggleVisibility('password', this)"></i>
+                </div>
             </div>
+
+            <script>
+                function toggleVisibility(id, icon) {
+                    const input = document.getElementById(id);
+                    if (input.type === 'password') {
+                        input.type = 'text';
+                        icon.classList.remove('fa-eye');
+                        icon.classList.add('fa-eye-slash');
+                    } else {
+                        input.type = 'password';
+                        icon.classList.remove('fa-eye-slash');
+                        icon.classList.add('fa-eye');
+                    }
+                }
+            </script>
 
 
 

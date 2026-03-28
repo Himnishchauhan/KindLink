@@ -59,6 +59,31 @@ a:hover {
     padding: 0 2rem;
 }
 
+/* Password Visibility Toggle Feature */
+.password-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.password-wrapper .form-control {
+    padding-right: 45px;
+}
+
+.password-toggle {
+    position: absolute;
+    right: 15px;
+    cursor: pointer;
+    color: var(--text-secondary);
+    transition: color 0.2s;
+    user-select: none;
+    z-index: 10;
+}
+
+.password-toggle:hover {
+    color: var(--brand-accent);
+}
+
 @media (max-width: 768px) {
     .container {
         padding: 0 1.25rem;

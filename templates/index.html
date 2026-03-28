@@ -10,9 +10,12 @@
         <p class="responsive-p" style="color: var(--text-secondary); max-width: 800px; margin: 0 auto 3rem auto; font-weight: 500; line-height: 1.5;">
             Intelligently matching global expertise with local NGO missions. Precision volunteering for real-world change.
         </p>
-        <div class="hero-buttons">
-            <a href="{{ url_for('register') }}?role=volunteer" class="btn btn-primary btn-large">Join as Volunteer</a>
-            <a href="{{ url_for('register') }}?role=ngo" class="btn btn-secondary btn-large">Register NGO</a>
+        <div class="hero-buttons" style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+            <a href="{{ url_for('register') }}?role=volunteer" class="btn btn-primary" style="padding: 1rem 2rem; font-weight: 700;">Join as Volunteer</a>
+            <a href="{{ url_for('register') }}?role=ngo" class="btn btn-secondary" style="padding: 1rem 2rem; font-weight: 700;">Register NGO</a>
+            <a href="{{ url_for('view_ngos') }}" class="btn btn-outline" style="padding: 1rem 2rem; font-weight: 700; color: var(--text-primary); border-color: var(--border-color); background: white;">
+                <i class="fa fa-earth-americas"></i> Discover NGOs
+            </a>
         </div>
     </div>
 </section>

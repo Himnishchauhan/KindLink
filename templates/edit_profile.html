@@ -27,8 +27,26 @@
 
             <div class="form-group">
                 <label for="password">New Password (leave blank to keep current password)</label>
-                <input type="password" id="password" name="password" class="form-control" placeholder="Enter new password">
+                <div class="password-wrapper">
+                    <input type="password" id="password" name="password" class="form-control" placeholder="Enter new password">
+                    <i class="fa-solid fa-eye password-toggle" onclick="toggleVisibility('password', this)"></i>
+                </div>
             </div>
+
+            <script>
+                function toggleVisibility(id, icon) {
+                    const input = document.getElementById(id);
+                    if (input.type === 'password') {
+                        input.type = 'text';
+                        icon.classList.remove('fa-eye');
+                        icon.classList.add('fa-eye-slash');
+                    } else {
+                        input.type = 'password';
+                        icon.classList.remove('fa-eye-slash');
+                        icon.classList.add('fa-eye');
+                    }
+                }
+            </script>
 
             <div class="form-group">
                 <label for="location">Location</label>
