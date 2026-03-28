@@ -4,8 +4,8 @@
 <div class="container" style="padding-top: 2rem;">
     <div class="dashboard-header" style="margin-bottom: 3rem; display: flex; justify-content: space-between; align-items: flex-start; gap: 2rem; flex-wrap: wrap;">
         <div class="header-left">
-            <h1 style="font-size: 2.5rem; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 0.5rem;">Discover NGOs</h1>
-            <p style="color: var(--text-secondary); font-size: 1.1rem; font-weight: 500;">Connect with organizations that align with your passion.</p>
+            <h1 class="responsive-h1" style="font-weight: 800; letter-spacing: -0.02em; margin-bottom: 0.5rem;">Discover NGOs</h1>
+            <p class="responsive-p" style="color: var(--text-secondary); font-weight: 500;">Connect with organizations that align with your passion.</p>
         </div>
         <div class="header-right">
             <a href="{{ url_for('volunteer_dashboard') }}" class="btn btn-outline" style="display: flex; align-items: center; gap: 0.5rem; font-weight: 700; color: var(--text-primary); border-color: rgba(15, 23, 42, 0.1); padding: 0.8rem 1.5rem;">
@@ -44,9 +44,11 @@
                     </div>
 
                     <!-- Zone 3: Quick Actions -->
-                    <div class="match-actions-end">
-                        <a href="{{ url_for('volunteer_dashboard') }}" class="btn btn-primary btn-sm btn-block">Explore Missions</a>
-                        <button class="btn btn-outline btn-sm btn-block" style="border-color: #e2e8f0; color: #64748b;" 
+                    <div class="match-actions-end" style="display: flex; flex-direction: column; gap: 0.75rem;">
+                        <a href="{{ url_for('ngo_showcase', ngo_id=item.user.id) }}" class="btn btn-primary btn-sm btn-block" style="padding: 0.8rem; border-radius: 8px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 0.5rem; background: var(--brand-accent); border: none;">
+                            <i class="fa-solid fa-rocket"></i> Explore Missions
+                        </a>
+                        <button class="btn btn-outline btn-sm btn-block" style="border-color: #e2e8f0; color: #64748b; padding: 0.75rem; border-radius: 8px;" 
                                 data-name="{{ item.user.name }}"
                                 data-email="{{ item.user.email }}"
                                 data-mobile="{{ item.user.mobile if item.user.mobile else 'Not Provided' }}"

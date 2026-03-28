@@ -4,7 +4,7 @@
 <div class="dashboard container" style="padding-top: 2rem; padding-bottom: 4rem;">
     <div class="bento-grid">
         <!-- Hero Card -->
-        <div class="bento-item" style="grid-column: span 8; padding: 3rem; display: flex; flex-direction: column; justify-content: space-between; background: linear-gradient(135deg, white 0%, #f8fafc 100%); position: relative; overflow: hidden;">
+        <div class="bento-item col-span-8" style="padding: 3rem; display: flex; flex-direction: column; justify-content: space-between; background: linear-gradient(135deg, white 0%, #f8fafc 100%); position: relative; overflow: hidden;">
             <div style="position: absolute; top: -20px; right: -20px; width: 150px; height: 150px; background: var(--brand-accent-soft); border-radius: 50%; filter: blur(40px); z-index: 0;"></div>
             <div style="position: relative; z-index: 1;">
                 <h2 style="font-size: 3rem; font-weight: 900; letter-spacing: -2px; line-height: 1.1; margin-bottom: 1rem;">Welcome back,<br><span style="color: var(--brand-accent);">{{ user.name }}</span></h2>
@@ -13,11 +13,11 @@
                     <span style="margin: 0 10px; opacity: 0.3;">|</span> 
                     Expertise: {{ user.skills }}
                 </p>
-                <div style="margin-top: 2rem; display: flex; gap: 1rem; position: relative; z-index: 1;">
-                    <a href="{{ url_for('view_ngos') }}" class="btn btn-primary" style="padding: 0.8rem 1.8rem; font-weight: 700; display: flex; align-items: center; gap: 0.5rem; background: var(--text-primary); border-color: var(--text-primary);">
+                <div class="flex-stack-mobile" style="margin-top: 2rem; position: relative; z-index: 1;">
+                    <a href="{{ url_for('view_ngos') }}" class="btn btn-primary" style="padding: 0.8rem 1.8rem; font-weight: 700; display: flex; align-items: center; gap: 0.5rem; background: var(--text-primary); border-color: var(--text-primary); justify-content: center;">
                         <i class="fa-solid fa-earth-americas"></i> Discover NGOs
                     </a>
-                    <a href="{{ url_for('edit_profile') }}" class="btn btn-outline" style="padding: 0.8rem 1.8rem; font-weight: 600; color: var(--text-primary); border-color: rgba(15, 23, 42, 0.1);">
+                    <a href="{{ url_for('edit_profile') }}" class="btn btn-outline" style="padding: 0.8rem 1.8rem; font-weight: 600; color: var(--text-primary); border-color: rgba(15, 23, 42, 0.1); justify-content: center;">
                         Edit Profile
                     </a>
                 </div>
@@ -29,14 +29,14 @@
         </div>
 
         <!-- Missions Card -->
-        <div class="bento-item" style="grid-column: span 4; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; background: var(--text-primary); color: white;">
+        <div class="bento-item col-span-4" style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; background: var(--text-primary); color: white;">
             <div style="font-size: 4rem; margin-bottom: 0.5rem;">🎯</div>
             <span style="font-size: 4rem; font-weight: 900; line-height: 1; letter-spacing: -2px;">{{ completed_apps }}</span>
             <span style="font-size: 1rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.2em; margin-top: 1rem; opacity: 0.7;">Missions Done</span>
         </div>
 
         <!-- Progress Card -->
-        <div class="bento-item" style="grid-column: span 4; display: flex; flex-direction: column; justify-content: space-between;">
+        <div class="bento-item col-span-4" style="display: flex; flex-direction: column; justify-content: space-between;">
             <div>
                 <h4 style="font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-secondary); margin-bottom: 1.5rem; font-weight: 800;">Next Tier Progress</h4>
                 <div style="display: flex; justify-content: space-between; font-weight: 700; margin-bottom: 0.5rem;">
@@ -53,7 +53,7 @@
         </div>
 
         <!-- Badges Card -->
-        <div class="bento-item" style="grid-column: span 8;">
+        <div class="bento-item col-span-8">
             <h4 style="font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-secondary); margin-bottom: 1.5rem; font-weight: 800;">Unlocked Achievements</h4>
             <div class="badges-grid" style="display: flex; gap: 1rem; flex-wrap: wrap;">
                 {% set badge_hours = {"It's Just The beginning": 1, "Helping Hand": 2, "Rising Star": 5, "Community Pillar": 10, "50 Hours Master": 50, "100 Hours Legend": 100} %}

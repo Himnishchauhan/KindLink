@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container" style="max-width: 800px; padding-top: 4rem; padding-bottom: 4rem;">
+    <div class="dashboard-header" style="margin-bottom: 3rem; display: flex; justify-content: space-between; align-items: center;">
+        <div class="header-left">
+            <h1 style="font-size: 2.5rem; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 0.5rem;">New Impact Story</h1>
+            <p style="color: var(--text-secondary); font-size: 1.1rem; font-weight: 500;">Share your organization's success and inspire others.</p>
+        </div>
+        <a href="{{ url_for('ngo_dashboard') }}" class="btn btn-outline" style="white-space: nowrap;">Cancel</a>
+    </div>
+
+    <div class="glass-card" style="padding: 3rem; border-radius: 20px;">
+        <form method="POST" action="{{ url_for('add_impact_story') }}" style="display: flex; flex-direction: column; gap: 2rem;">
+            <div class="form-group">
+                <label for="title" style="display: block; font-weight: 700; margin-bottom: 0.75rem; color: var(--text-primary);">Project Title</label>
+                <input type="text" id="title" name="title" required placeholder="e.g. 500 Trees Planted in Sector 14" 
+                       style="width: 100%; padding: 1rem; border: 2px solid #e2e8f0; border-radius: 12px; font-size: 1.1rem; font-weight: 500; transition: border-color 0.2s;">
+            </div>
+
+            <div class="form-group">
+                <label for="description" style="display: block; font-weight: 700; margin-bottom: 0.75rem; color: var(--text-primary);">The Story / Impact Details</label>
+                <textarea id="description" name="description" required rows="6" placeholder="Describe what happened, the results achieved, and why it matters..." 
+                          style="width: 100%; padding: 1rem; border: 2px solid #e2e8f0; border-radius: 12px; font-size: 1.1rem; font-family: inherit; line-height: 1.6; transition: border-color 0.2s;"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="image_url" style="display: block; font-weight: 700; margin-bottom: 0.75rem; color: var(--text-primary);">Image URL (Optional)</label>
+                <input type="url" id="image_url" name="image_url" placeholder="https://images.unsplash.com/photo-..." 
+                       style="width: 100%; padding: 1rem; border: 2px solid #e2e8f0; border-radius: 12px; font-size: 1.1rem; transition: border-color 0.2s;">
+                <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.5rem;">Use a direct link to an image from services like Unsplash or Pexels.</p>
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="padding: 1.25rem; font-size: 1.25rem; font-weight: 800; border-radius: 12px; margin-top: 1rem;">
+                🚀 Publish Impact Story
+            </button>
+        </form>
+    </div>
+</div>
+
+<style>
+    input:focus, textarea:focus {
+        outline: none;
+        border-color: var(--brand-accent) !important;
+        box-shadow: 0 0 0 4px var(--brand-accent-soft);
+    }
+</style>
+{% endblock %}

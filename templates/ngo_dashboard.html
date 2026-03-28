@@ -4,7 +4,7 @@
 <div class="dashboard container" style="padding-top: 2rem; padding-bottom: 4rem;">
     <div class="bento-grid">
         <!-- NGO Hero Card -->
-        <div class="bento-item" style="grid-column: span 8; padding: 3rem; display: flex; flex-direction: column; justify-content: space-between; background: linear-gradient(135deg, white 0%, #f8fafc 100%);">
+        <div class="bento-item col-span-8" style="padding: 3rem; display: flex; flex-direction: column; justify-content: space-between; background: linear-gradient(135deg, white 0%, #f8fafc 100%);">
             <div>
                 <h2 style="font-size: 3rem; font-weight: 900; letter-spacing: -2px; line-height: 1.1; margin-bottom: 1rem;">{{ user.name }}<br><span style="color: var(--brand-accent);">Impact Center</span></h2>
                 <p style="font-size: 1.1rem; color: var(--text-secondary); font-weight: 500; max-width: 500px;">
@@ -13,39 +13,42 @@
                     Mission: {{ user.mission[:80] }}...
                 </p>
             </div>
-            <div style="margin-top: 3rem; display: flex; gap: 1rem;">
-                <a href="{{ url_for('new_opportunity') }}" class="btn btn-primary" style="padding: 0.8rem 1.8rem; font-weight: 700; display: flex; align-items: center; gap: 0.5rem;">
+            <div class="flex-stack-mobile" style="margin-top: 3rem;">
+                <a href="{{ url_for('new_opportunity') }}" class="btn btn-primary" style="padding: 0.8rem 1.8rem; font-weight: 700; display: flex; align-items: center; gap: 0.5rem; justify-content: center;">
                     + Post New Opportunity
                 </a>
-                <a href="{{ url_for('view_volunteers') }}" class="btn btn-outline" style="padding: 0.8rem 1.8rem; font-weight: 600; color: var(--text-primary); border-color: rgba(15, 23, 42, 0.1); border-radius: 4px; display: flex; align-items: center; gap: 0.5rem;">
+                <a href="{{ url_for('view_volunteers') }}" class="btn btn-outline" style="padding: 0.8rem 1.8rem; font-weight: 600; color: var(--text-primary); border-color: rgba(15, 23, 42, 0.1); border-radius: 4px; display: flex; align-items: center; gap: 0.5rem; justify-content: center;">
                     <i class="fa-solid fa-users-viewfinder"></i> Discover Volunteers
+                </a>
+                <a href="{{ url_for('add_impact_story') }}" class="btn btn-outline" style="padding: 0.8rem 1.8rem; font-weight: 600; color: var(--brand-accent); border-color: var(--brand-accent-soft); border-radius: 4px; display: flex; align-items: center; gap: 0.5rem; background: white; justify-content: center;">
+                    <i class="fa-solid fa-star"></i> Share Impact Story
                 </a>
             </div>
         </div>
 
         <!-- Completed Missions Card -->
-        <div class="bento-item" style="grid-column: span 4; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; background: var(--text-primary); color: white;">
+        <div class="bento-item col-span-4" style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; background: var(--text-primary); color: white;">
             <div style="font-size: 4rem; margin-bottom: 0.5rem;">🤝</div>
             <span style="font-size: 4rem; font-weight: 900; line-height: 1; letter-spacing: -2px;">{{ completed_missions }}</span>
             <span style="font-size: 1rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.2em; margin-top: 1rem; opacity: 0.7;">Impact Successes</span>
         </div>
 
         <!-- Metric Tile 1: Success Rate -->
-        <div class="bento-item" style="grid-column: span 4; text-align: center;">
+        <div class="bento-item col-span-4" style="text-align: center;">
             <h4 style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-secondary); margin-bottom: 1rem; font-weight: 800;">Match Success</h4>
             <div style="font-size: 3rem; font-weight: 900; color: var(--brand-accent);">{{ success_rate }}%</div>
             <p style="font-size: 0.85rem; color: var(--text-secondary); font-weight: 600; margin-top: 0.5rem;">Of accepted matches</p>
         </div>
 
         <!-- Metric Tile 2: Active Ops -->
-        <div class="bento-item" style="grid-column: span 4; text-align: center;">
+        <div class="bento-item col-span-4" style="text-align: center;">
             <h4 style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-secondary); margin-bottom: 1rem; font-weight: 800;">Active Ops</h4>
             <div style="font-size: 3rem; font-weight: 900;">{{ opps|length }}</div>
             <p style="font-size: 0.85rem; color: var(--text-secondary); font-weight: 600; margin-top: 0.5rem;">Seeking support</p>
         </div>
 
         <!-- Metric Tile 3: Trending Skill -->
-        <div class="bento-item" style="grid-column: span 4; text-align: center; background: var(--bg-light);">
+        <div class="bento-item col-span-4" style="text-align: center; background: var(--bg-light);">
             <h4 style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-secondary); margin-bottom: 1rem; font-weight: 800;">Trending Skill</h4>
             <div style="font-size: 1.5rem; font-weight: 800; color: var(--text-primary); margin-top: 1rem;">{{ trending_skill }}</div>
             <p style="font-size: 0.85rem; color: var(--text-secondary); font-weight: 600; margin-top: 0.5rem;">Most in demand</p>
@@ -96,7 +99,44 @@
         </div>
     </section>
 
-    <!-- Applications Received -->
+    <!-- Impact Showcase Management -->
+    <section class="opps-section" style="margin-top: 3rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+            <h3 style="margin: 0;">My Impact Showcase</h3>
+            <span style="font-size: 0.9rem; color: var(--text-secondary); font-weight: 600; background: var(--bg-light); padding: 4px 12px; border-radius: 20px;">{{ user.impact_stories|length }} Stories Published</span>
+        </div>
+        <div class="matches-grid">
+            {% if user.impact_stories %}
+                {% for story in user.impact_stories %}
+                <div class="match-card glass-card hover-lift" style="padding: 0; overflow: hidden;">
+                    {% if story.image_url %}
+                    <div style="width: 100%; height: 160px; overflow: hidden; background: #f1f5f9;">
+                        <img src="{{ story.image_url }}" alt="{{ story.title }}" style="width: 100%; height: 100%; object-fit: cover;">
+                    </div>
+                    {% endif %}
+                    <div style="padding: 1.5rem;">
+                        <div class="match-header" style="margin-bottom: 0.5rem;">
+                            <h4 style="margin: 0; font-size: 1.1rem; line-height: 1.3;">{{ story.title }}</h4>
+                        </div>
+                        <p style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.6; margin-bottom: 1.5rem; display: -webkit-box; -webkit-line-clamp: 3; line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">
+                            {{ story.description }}
+                        </p>
+                        <div class="match-actions-end">
+                            <form action="{{ url_for('delete_impact_story', story_id=story.id) }}" method="POST" onsubmit="return confirm('Remove this story from your public showcase?');">
+                                <button type="submit" class="btn btn-outline btn-sm" style="color: #ef4444; border-color: rgba(239, 68, 68, 0.1);">Remove Story</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="empty-state" style="grid-column: 1 / -1; background: var(--bg-light); border: 2px dashed var(--border-color); padding: 3rem;">
+                    <p style="font-weight: 600; color: var(--text-secondary);">Your showcase is empty. Share your first success story to inspire volunteers!</p>
+                    <a href="{{ url_for('add_impact_story') }}" class="btn btn-primary" style="margin-top: 1rem;">Add My First Story</a>
+                </div>
+            {% endif %}
+        </div>
+    </section>
     <section class="opps-section" style="margin-top: 3rem;">
         <h3>Applications Received</h3>
         <div class="matches-grid">

@@ -30,6 +30,12 @@ body {
     min-height: 100vh;
     display: flex;
     flex-direction: column;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+html {
+    overflow-x: hidden;
 }
 
 a {
@@ -48,9 +54,15 @@ a:hover {
 }
 
 .container {
-    max-width: 1400px; /* narrowed down slightly for minimal readable lengths */
+    max-width: 1400px;
     margin: 0 auto;
     padding: 0 2rem;
+}
+
+@media (max-width: 768px) {
+    .container {
+        padding: 0 1.25rem;
+    }
 }
 
 /* Navbar */
@@ -125,6 +137,21 @@ a:hover {
     opacity: 1;
     visibility: visible;
     transform: translateY(0);
+}
+
+@media (max-width: 768px) {
+    .dropdown-menu {
+        position: fixed;
+        width: 100%;
+        left: 0;
+        right: 0;
+        top: 70px; /* Aligns with bottom of navbar */
+        border-radius: 0;
+        border: none;
+        border-bottom: 1px solid var(--border-color);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        z-index: 999;
+    }
 }
 
 .dropdown-link {
@@ -323,6 +350,31 @@ a:hover {
     animation: fadeInUp 0.8s cubic-bezier(0.4, 0, 0.2, 1) both;
 }
 
+/* Responsive Bento Spans */
+.col-span-12 { grid-column: span 12; }
+.col-span-10 { grid-column: span 10; }
+.col-span-8 { grid-column: span 8; }
+.col-span-6 { grid-column: span 6; }
+.col-span-4 { grid-column: span 4; }
+.col-span-2 { grid-column: span 2; }
+
+@media (max-width: 1024px) {
+    .col-span-8, .col-span-10 { grid-column: span 12; }
+}
+
+@media (max-width: 768px) {
+    .bento-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    .col-span-12, .col-span-10, .col-span-8, .col-span-6, .col-span-4, .col-span-2 {
+        grid-column: span 12;
+    }
+    .bento-item {
+        padding: 1.25rem;
+    }
+}
+
 /* Staggered Entrance for Bento Grid */
 .bento-grid .bento-item:nth-child(1) { animation-delay: 0.1s; }
 .bento-grid .bento-item:nth-child(2) { animation-delay: 0.2s; }
@@ -345,6 +397,19 @@ a:hover {
     padding: 3rem;
     width: 70vw;
     max-width: 100%;
+}
+
+@media (max-width: 768px) {
+    .glass-container.auth-form-container {
+        padding: 2rem 1.5rem;
+        width: 100%;
+    }
+    .auth-wrapper {
+        padding: 1rem;
+    }
+    .auth-form-container h2 {
+        font-size: 2rem;
+    }
 }
 
 /* Flash msg */
@@ -505,6 +570,38 @@ label {
     gap: 1rem;
 }
 
+.flex-stack-mobile {
+    display: flex;
+    gap: 1rem;
+}
+
+@media (max-width: 768px) {
+    .flex-stack-mobile {
+        flex-direction: column;
+        width: 100%;
+    }
+    .flex-stack-mobile .btn {
+        width: 100%;
+    }
+    .hero {
+        padding: 3rem 1.25rem;
+    }
+    .hero h1 {
+        font-size: 2.25rem;
+    }
+    .hero p {
+        font-size: 1rem;
+        margin-bottom: 2rem;
+    }
+    .hero-buttons {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+    .hero-buttons .btn {
+        width: 100%;
+    }
+}
+
 .hero-image {
     display: none; /* Removed the abstract shapes completely to be minimal */
 }
@@ -562,6 +659,13 @@ label {
     font-weight: 300;
 }
 
+/* Responsive Typography Utilities */
+@media (max-width: 768px) {
+    .responsive-h1 { font-size: 2.25rem !important; }
+    .responsive-h2 { font-size: 1.75rem !important; }
+    .responsive-p { font-size: 1rem !important; }
+}
+
 /* Dashboard Styles */
 .dashboard {
     padding: 3rem 2rem;
@@ -575,6 +679,23 @@ label {
     margin-bottom: 2.5rem;
     flex-wrap: wrap;
     gap: 2rem;
+}
+
+@media (max-width: 768px) {
+    .dashboard {
+        padding: 2rem 1.25rem;
+        width: 100%;
+    }
+    .dashboard-header {
+        padding: 1.25rem;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1.5rem;
+        text-align: left;
+    }
+    .dashboard-header h2, .dashboard-header h1 {
+        font-size: 2rem;
+    }
 }
 
 .profile-summary h2 {
@@ -599,6 +720,21 @@ label {
     text-align: center;
     background-color: #ffffff;
     border: 1px solid var(--border-color);
+}
+
+@media (max-width: 768px) {
+    /* Responsive stats for bento grids */
+    .bento-grid div[style*="font-size: 5rem"], 
+    .bento-grid div[style*="font-size: 4rem"] {
+        font-size: 3rem !important;
+    }
+    .bento-grid span[style*="font-size: 5rem"], 
+    .bento-grid span[style*="font-size: 4rem"] {
+        font-size: 3rem !important;
+    }
+    .bento-grid div[style*="padding: 3rem"] {
+        padding: 2rem 1.5rem !important;
+    }
 }
 
 .stat-number {
@@ -698,6 +834,15 @@ label {
     grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
     gap: 1.5rem;
     margin-top: 1.5rem;
+}
+
+@media (max-width: 480px) {
+    .matches-grid {
+        grid-template-columns: 1fr;
+    }
+    .match-card {
+        padding: 1.5rem;
+    }
 }
 
 .match-card {

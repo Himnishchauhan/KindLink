@@ -62,6 +62,16 @@ class Application(db.Model):
     volunteer = db.relationship('User', foreign_keys=[volunteer_id], backref=db.backref('applications', lazy=True))
     opportunity = db.relationship('Opportunity', backref=db.backref('applications', lazy=True))
 
+class ImpactStory(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    ngo_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    title = db.Column(db.String(100), nullable=False)
+    description = db.Column(db.Text, nullable=False)
+    image_url = db.Column(db.String(255), default='') # Placeholder support
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    ngo = db.relationship('User', backref=db.backref('impact_stories', lazy=True, order_by='ImpactStory.created_at.desc()'))
+
 with app.app_context():
     db.create_all()
 
@@ -179,6 +189,37 @@ def volunteer_dashboard():
 
     return render_template('volunteer_dashboard.html', user=user, matches=matches[:5], total_apps=total_apps, completed_apps=completed_apps, pending_apps=pending_apps, next_badge=next_badge, progress_pct=progress_pct)
 
+@app.route('/impact/new', methods=['GET', 'POST'])
+def add_impact_story():
+    if 'user_id' not in session: return redirect(url_for('login'))
+    user = User.query.get(session['user_id'])
+    if user.role != 'ngo': return redirect(url_for('index'))
+    
+    if request.method == 'POST':
+        title = request.form.get('title')
+        description = request.form.get('description')
+        image_url = request.form.get('image_url', '')
+        
+        story = ImpactStory(ngo_id=user.id, title=title, description=description, image_url=image_url)
+        db.session.add(story)
+        db.session.commit()
+        flash('Impact story added!', 'success')
+        return redirect(url_for('ngo_dashboard'))
+        
+    return render_template('add_impact_story.html')
+
+@app.route('/impact/delete/<int:story_id>', methods=['POST'])
+def delete_impact_story(story_id):
+    if 'user_id' not in session: return redirect(url_for('login'))
+    user = User.query.get(session['user_id'])
+    story = ImpactStory.query.get_or_404(story_id)
+    if story.ngo_id != user.id: return redirect(url_for('index'))
+    
+    db.session.delete(story)
+    db.session.commit()
+    flash('Story removed from showcase.', 'info')
+    return redirect(url_for('ngo_dashboard'))
+
 @app.route('/view_ngos')
 def view_ngos():
     if 'user_id' not in session: return redirect(url_for('login'))
@@ -216,6 +257,15 @@ def view_volunteers():
         })
     
     return render_template('view_volunteers.html', volunteers=vol_list)
+
+@app.route('/ngo/showcase/<int:ngo_id>')
+def ngo_showcase(ngo_id):
+    if 'user_id' not in session: return redirect(url_for('login'))
+    ngo = User.query.get_or_404(ngo_id)
+    if ngo.role != 'ngo': return redirect(url_for('index'))
+    
+    stories = ImpactStory.query.filter_by(ngo_id=ngo_id).order_by(ImpactStory.created_at.desc()).all()
+    return render_template('ngo_showcase.html', ngo=ngo, stories=stories)
 
 @app.route('/ngo')
 def ngo_dashboard():
