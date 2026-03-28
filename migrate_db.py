@@ -1,31 +1,51 @@
-from app import app, db
+import os
 from sqlalchemy import text
+from app import app, db
+import subprocess
 
 def migrate():
+    print("🚀 Starting Database Migration...")
     with app.app_context():
-        try:
-            # Add order_id column
-            db.session.execute(text("ALTER TABLE donation ADD COLUMN order_id VARCHAR(255)"))
-            print("Successfully added order_id column.")
-        except Exception as e:
-            print(f"order_id column already exists or error: {e}")
+        # 1. Create all tables if they don't exist
+        # This will create our NEW ImpactMetric and Reward tables automatically!
+        db.create_all()
+        print("✅ Core tables initialized/verified.")
 
-        try:
-            # Add razorpay_payment_id column 
-            db.session.execute(text("ALTER TABLE donation ADD COLUMN razorpay_payment_id VARCHAR(255)"))
-            print("Successfully added razorpay_payment_id column.")
-        except Exception as e:
-            print(f"razorpay_payment_id column already exists or error: {e}")
-            
-        try:
-            # Add currency column if missing
-            db.session.execute(text("ALTER TABLE donation ADD COLUMN currency VARCHAR(10) DEFAULT 'INR'"))
-            print("Successfully added currency column.")
-        except Exception as e:
-            print(f"currency column already exists or error: {e}")
+        # 2. Add columns if needed (handle potential existing schema)
+        alterations = [
+            ("donation", "order_id", "VARCHAR(255)"),
+            ("donation", "razorpay_payment_id", "VARCHAR(255)"),
+            ("donation", "currency", "VARCHAR(10) DEFAULT 'INR'"),
+            ("opportunity", "is_urgent", "BOOLEAN DEFAULT 0"),
+            ("user", "mobile", "VARCHAR(20) DEFAULT ''"),
+            ("user", "badges", "VARCHAR(200) DEFAULT ''"),
+            ("user", "hours_logged", "INTEGER DEFAULT 0"),
+        ]
 
-        db.session.commit()
-        print("Migration complete!")
+        for table, col, col_type in alterations:
+            try:
+                db.session.execute(text(f"ALTER TABLE {table} ADD COLUMN {col} {col_type}"))
+                db.session.commit()
+                print(f"✅ Added {col} to {table}.")
+            except Exception:
+                # Column likely already exists
+                db.session.rollback()
+                pass
+
+        print("✨ Schema Migration Complete!")
+
+    # 3. Prompt for seeding if credentials aren't working
+    print("\n📦 Would you like to re-seed the database to ensure all demo credentials (password123) work?")
+    choice = input("Run seed now? (y/n): ")
+    if choice.lower() == 'y':
+        print("🌱 Seeding database...")
+        try:
+            # Running both seed scripts
+            subprocess.run(["python", "seed.py"], check=True)
+            subprocess.run(["python", "seed_users.py"], check=True)
+            print("✅ Seeding complete! Credentials (password123) are now active.")
+        except Exception as e:
+            print(f"❌ Error seeding: {e}")
 
 if __name__ == "__main__":
     migrate()
