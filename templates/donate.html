@@ -1,0 +1,138 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container" style="padding: 4rem 1.25rem;">
+    <div class="glass-container" style="max-width: 800px; margin: 0 auto; padding: 4rem; text-align: center;">
+        <h2 class="responsive-h1" style="font-size: 3.5rem; font-weight: 900; letter-spacing: -2px; line-height: 1; margin-bottom: 1.5rem;">
+            Empower the <span style="color: var(--brand-accent);">Community.</span>
+        </h2>
+        <p class="responsive-p" style="font-size: 1.25rem; color: var(--text-secondary); margin-bottom: 3rem; max-width: 600px; margin-left: auto; margin-right: auto;">
+            Your contribution directly funds precision volunteering missions and supports NGOs in scaling their social impact globally.
+        </p>
+
+        <div id="donationSelection">
+            <!-- Amount Selection (INR) -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+                <div class="amount-chip" onclick="setAmount(500)">₹500</div>
+                <div class="amount-chip" onclick="setAmount(1000)">₹1,000</div>
+                <div class="amount-chip active" onclick="setAmount(2000)">₹2,000</div>
+                <div class="amount-chip" onclick="setAmount(5000)">₹5,000</div>
+            </div>
+
+            <!-- Custom Amount & Name -->
+            <div style="margin-bottom: 2.5rem;">
+                <div class="form-group" style="margin-bottom: 1.5rem;">
+                    <label style="display: block; text-align: left; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem; color: var(--text-secondary); font-weight: 600;">Custom Amount (₹)</label>
+                    <input type="number" id="customAmount" value="2000" min="100" class="form-control" style="font-size: 1.5rem; text-align: center; font-weight: 700;">
+                </div>
+                <div class="form-group">
+                    <label style="display: block; text-align: left; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem; color: var(--text-secondary); font-weight: 600;">Donor Name (Optional)</label>
+                    <input type="text" id="donorName" placeholder="John Doe or Anonymous" class="form-control" style="text-align: center;">
+                </div>
+            </div>
+
+            <button onclick="initiatePayment()" class="btn btn-primary" style="width: 100%; padding: 1.25rem; font-size: 1.2rem; font-weight: 700; background: var(--brand-accent); box-shadow: 0 10px 30px rgba(37, 99, 235, 0.2);">
+                Support the Mission
+            </button>
+            <p style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 1.5rem; opacity: 0.7;">
+                <i class="fa fa-lock"></i> Securely processed by Razorpay. Precision giving for social change.
+            </p>
+        </div>
+    </div>
+</div>
+
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+    function setAmount(val) {
+        document.getElementById('customAmount').value = val;
+        document.querySelectorAll('.amount-chip').forEach(chip => {
+            chip.classList.remove('active');
+            let displayVal = '₹' + val.toLocaleString();
+            if(chip.innerText === displayVal) {
+                chip.classList.add('active');
+            }
+        });
+    }
+
+    async function initiatePayment() {
+        const amount = document.getElementById('customAmount').value;
+        const donor_name = document.getElementById('donorName').value || 'Anonymous Donor';
+
+        // 1. Create Order on Backend
+        const response = await fetch('/create-order', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body: `amount=${amount}&donor_name=${donor_name}`
+        });
+        const orderData = await response.json();
+
+        if(orderData.error) {
+            alert("Error: " + orderData.error);
+            return;
+        }
+
+        // 2. Open Razorpay Modal
+        const options = {
+            "key": orderData.key_id,
+            "amount": orderData.amount,
+            "currency": "INR",
+            "name": "KindLink Foundation",
+            "description": "Community Impact Contribution",
+            "order_id": orderData.order_id,
+            "handler": function (response){
+                // 3. Verify Payment on Success
+                fetch('/verify-payment', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        razorpay_order_id: response.razorpay_order_id,
+                        razorpay_payment_id: response.razorpay_payment_id,
+                        razorpay_signature: response.razorpay_signature
+                    })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if(data.status === 'success') {
+                        window.location.href = "/donation/success/" + data.donation_id;
+                    } else {
+                        alert("Payment verification failed.");
+                    }
+                });
+            },
+            "prefill": {
+                "name": donor_name
+            },
+            "theme": {
+                "color": "#2563eb"
+            }
+        };
+        const rzp = new Razorpay(options);
+        rzp.open();
+    }
+</script>
+
+<style>
+    .amount-chip {
+        padding: 1.5rem 1rem;
+        background: white;
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        font-weight: 700;
+        font-size: 1.25rem;
+        cursor: pointer;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        color: var(--text-primary);
+    }
+    .amount-chip:hover {
+        border-color: var(--brand-accent);
+        background: #f8fafc;
+        transform: translateY(-2px);
+    }
+    .amount-chip.active {
+        background: var(--brand-accent);
+        color: white;
+        border-color: var(--brand-accent);
+        box-shadow: 0 8px 20px rgba(37, 99, 235, 0.2);
+    }
+</style>
+{% endblock %}

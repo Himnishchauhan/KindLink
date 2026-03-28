@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container" style="padding: 6rem 1.25rem; text-align: center;">
+    <div class="glass-container" style="max-width: 600px; margin: 0 auto; padding: 5rem 3rem;">
+        <div style="font-size: 5rem; color: #10b981; margin-bottom: 2rem;">
+            <i class="fa fa-check-circle"></i>
+        </div>
+        <h2 class="responsive-h1" style="font-size: 3rem; font-weight: 900; letter-spacing: -2px; margin-bottom: 1.5rem;">
+            Impact <span style="color: var(--brand-accent);">Received.</span>
+        </h2>
+        <p class="responsive-p" style="font-size: 1.25rem; color: var(--text-secondary); margin-bottom: 3rem; line-height: 1.6;">
+            Thank you, <strong>{{ donation.donor_name }}</strong>, for your generous contribution of <strong>₹{{ "{:,.2f}".format(donation.amount / 100) }}</strong>. Your support fuels the precision missions that change the world.
+        </p>
+
+        <div style="background: var(--bg-light); padding: 1.5rem; border-radius: 12px; border: 1px solid var(--border-color); margin-bottom: 3rem; text-align: left;">
+            <p style="font-size: 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-secondary); margin-bottom: 1rem;">Transaction Summary</p>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.95rem;">
+                <span style="color: var(--text-secondary);">Organization</span>
+                <span class="font-weight: 600;">KindLink Foundation</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 1.1rem; border-top: 1px dashed var(--border-color); padding-top: 0.5rem; font-weight: 700;">
+                <span style="color: var(--text-primary);">Total Contribution</span>
+                <span style="color: var(--brand-accent);">₹{{ "{:,.2f}".format(donation.amount / 100) }}</span>
+            </div>
+        </div>
+
+        <a href="{{ url_for('index') }}" class="btn btn-primary" style="width: 100%; padding: 1rem; font-weight: 700;">Return to Dashboard</a>
+        <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 2rem;">A receipt has been sent to your email.</p>
+    </div>
+</div>
+{% endblock %}

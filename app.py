@@ -1,8 +1,13 @@
 import os
-from datetime import datetime
+import razorpay
 from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
+from datetime import datetime
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 app = Flask(__name__)
 app.secret_key = 'super_secret_key_for_flux'
@@ -10,6 +15,11 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///app.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
+
+# Razorpay Configuration (Keys to be provided later)
+RAZORPAY_KEY_ID = os.environ.get('RAZORPAY_KEY_ID', 'rzp_test_your_key_id')
+RAZORPAY_KEY_SECRET = os.environ.get('RAZORPAY_KEY_SECRET', 'your_key_secret')
+razorpay_client = razorpay.Client(auth=(RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET))
 
 # Models
 class User(db.Model):
@@ -71,6 +81,16 @@ class ImpactStory(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     ngo = db.relationship('User', backref=db.backref('impact_stories', lazy=True, order_by='ImpactStory.created_at.desc()'))
+
+class Donation(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    amount = db.Column(db.Integer, nullable=False) # In paise (100 paise = 1 INR)
+    currency = db.Column(db.String(10), default='INR')
+    donor_name = db.Column(db.String(100), default='Anonymous Donor')
+    status = db.Column(db.String(20), default='pending') # pending, paid
+    order_id = db.Column(db.String(255))
+    razorpay_payment_id = db.Column(db.String(255))
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 with app.app_context():
     db.create_all()
@@ -547,6 +567,82 @@ def withdraw_application(app_id):
     db.session.commit()
     flash('Application withdrawn successfully.', 'success')
     return redirect(url_for('volunteer_dashboard'))
+
+# Donation Routes
+@app.route('/donate')
+def donate():
+    return render_template('donate.html', key_id=RAZORPAY_KEY_ID)
+
+@app.route('/create-order', methods=['POST'])
+def create_order():
+    try:
+        amount_in_inr = int(request.form.get('amount', 500))
+        amount_in_paise = amount_in_inr * 100
+        donor_name = request.form.get('donor_name', 'Anonymous Donor')
+        
+        # Create Razorpay Order
+        data = {
+            "amount": amount_in_paise,
+            "currency": "INR",
+            "payment_capture": 1
+        }
+        order = razorpay_client.order.create(data=data)
+        
+        # Track pending donation
+        donation = Donation(
+            amount=amount_in_paise,
+            donor_name=donor_name,
+            order_id=order['id'],
+            status='pending'
+        )
+        db.session.add(donation)
+        db.session.commit()
+        
+        return jsonify({
+            'order_id': order['id'],
+            'amount': amount_in_paise,
+            'donor_name': donor_name,
+            'key_id': RAZORPAY_KEY_ID
+        })
+    except Exception as e:
+        return jsonify(error=str(e)), 400
+
+@app.route('/verify-payment', methods=['POST'])
+def verify_payment():
+    data = request.json
+    try:
+        # Verify Razorpay Signature
+        params_dict = {
+            'razorpay_order_id': data['razorpay_order_id'],
+            'razorpay_payment_id': data['razorpay_payment_id'],
+            'razorpay_signature': data['razorpay_signature']
+        }
+        razorpay_client.utility.verify_payment_signature(params_dict)
+        
+        # Update Database
+        donation = Donation.query.filter_by(order_id=data['razorpay_order_id']).first()
+        if donation:
+            donation.status = 'paid'
+            donation.razorpay_payment_id = data['razorpay_payment_id']
+            db.session.commit()
+            return jsonify(status="success", donation_id=donation.id)
+            
+    except Exception as e:
+        return jsonify(status="error", message=str(e)), 400
+    
+    return jsonify(status="error"), 400
+
+@app.route('/donation/success/<int:donation_id>')
+def donation_success(donation_id):
+    donation = Donation.query.get_or_404(donation_id)
+    if donation.status == 'paid':
+        return render_template('donation_success.html', donation=donation)
+    return redirect(url_for('index'))
+
+@app.route('/donation/cancel')
+def donation_cancel():
+    flash('Donation cancelled. Your support still matters!', 'info')
+    return redirect(url_for('donate'))
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
