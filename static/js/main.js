@@ -13,8 +13,8 @@ document.addEventListener("DOMContentLoaded", function() {
     const cards = document.querySelectorAll('.glass-card');
     cards.forEach((card, index) => {
         card.style.opacity = '0';
-        card.style.transform = 'translateY(20px)';
-        card.style.transition = 'all 0.5s ease-out';
+        card.style.transform = 'translateY(-50px)';
+        card.style.transition = 'all 1s ease-out';
         
         setTimeout(() => {
             card.style.opacity = '1';

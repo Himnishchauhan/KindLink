@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container" style="padding-top: 2rem;">
+    <div class="dashboard-header" style="margin-bottom: 3rem; display: flex; justify-content: space-between; align-items: flex-start; gap: 2rem; flex-wrap: wrap;">
+        <div class="header-left">
+            <h1 style="font-size: 2.5rem; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 0.5rem;">Discover Volunteers</h1>
+            <p style="color: var(--text-secondary); font-size: 1.1rem; font-weight: 500;">Connect with passionate individuals ready to help your cause.</p>
+        </div>
+        <div class="header-right">
+            <a href="{{ url_for('ngo_dashboard') }}" class="btn btn-outline" style="display: flex; align-items: center; gap: 0.5rem; font-weight: 700; color: var(--text-primary); border-color: rgba(15, 23, 42, 0.1); padding: 0.8rem 1.5rem;">
+                <i class="fa-solid fa-arrow-left"></i> Back to Dashboard
+            </a>
+        </div>
+    </div>
+
+    <section class="matches-section">
+        <div class="matches-grid">
+            {% if volunteers %}
+                {% for item in volunteers %}
+                <div class="match-card glass-card hover-lift">
+                    <!-- Zone 1: Header/Availability -->
+                    <div class="match-header">
+                        <h4 style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap; margin:0;">
+                            {{ item.user.name }}
+                            {% if item.user.is_available_now %}
+                            <span style="font-size:0.75rem; background:#dcfce7; color:#166534; padding:2px 8px; border-radius:12px; white-space:nowrap;">⚡ Available Now</span>
+                            {% endif %}
+                        </h4>
+                        <span class="match-score" style="font-size: 0.75rem; width: fit-content; background: #e0f2fe; color: #0369a1;">{{ item.user.hours_logged }} Hours Logged</span>
+                    </div>
+
+                    <!-- Zone 2: Skills & Impact -->
+                    <div class="match-info-center">
+                        <div style="margin-top: 0.5rem; display: flex; gap: 0.5rem; align-items: center;">
+                            <span class="badge" style="background: var(--text-primary); color: white; padding: 4px 10px; border-radius: 6px; font-size: 0.8rem; font-weight: 700;">
+                                {{ item.missions_done }} Missions Done
+                            </span>
+                            <span style="font-size: 0.85rem; color: var(--text-secondary); font-weight: 600;">📍 {{ item.user.location }}</span>
+                        </div>
+                        <div class="match-tags" style="margin-top: 1rem;">
+                            {% for skill in item.user.skills.split(',') %}
+                                {% if skill.strip() %}
+                                <span class="tag">#{{ skill.strip().lower()|replace(' ', '') }}</span>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <!-- Zone 3: Actions -->
+                    <div class="match-actions-end">
+                        <button class="btn btn-primary btn-sm btn-block" 
+                                data-name="{{ item.user.name }}"
+                                data-email="{{ item.user.email }}"
+                                onclick="sendInvite(this)">Send Mission Invite</button>
+                        <button class="btn btn-outline btn-sm btn-block" style="border-color: #e2e8f0; color: #64748b;" 
+                                data-name="{{ item.user.name }}"
+                                data-mobile="{{ item.user.mobile if item.user.mobile else 'Not provided' }}"
+                                onclick="showVolunteerContact(this)">Contact Info</button>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="empty-state" style="grid-column: 1 / -1; padding: 4rem;">
+                    <p style="font-size: 1.1rem;">No volunteers registered on the platform yet. They're coming soon!</p>
+                </div>
+            {% endif %}
+        </div>
+    </section>
+</div>
+
+<style>
+/* Additional page-specific tweaks */
+.match-card {
+    min-height: 380px;
+    justify-content: space-between;
+}
+</style>
+{% block scripts %}
+<script>
+function sendInvite(btn) {
+    const name = btn.getAttribute('data-name');
+    const email = btn.getAttribute('data-email');
+    alert(`Invite feature coming soon! 🚀\n\nIn the meantime, you can send a mission invite to ${name} at: ${email}`);
+}
+
+function showVolunteerContact(btn) {
+    const name = btn.getAttribute('data-name');
+    const mobile = btn.getAttribute('data-mobile');
+    alert(`Volunteer: ${name}\n\n📞 Mobile: ${mobile}`);
+}
+</script>
+{% endblock %}
+
+{% endblock %}

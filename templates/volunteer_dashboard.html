@@ -1,44 +1,81 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="dashboard container">
-    <div class="dashboard-header glass-card">
-        <div class="profile-summary">
-            <h2>Welcome back, <span class="highlight">{{ user.name }}</span></h2>
-            <p class="profile-meta">Location: <a href="https://www.google.com/maps/search/?api=1&query={{ user.location | urlencode }}+India" target="_blank" style="color: inherit; text-decoration: underline;"><i class="fa fa-map-marker" aria-hidden="true" style="margin-right:2px;"></i>{{ user.location }}</a> | Skills: {{ user.skills }}</p>
-        </div>
-        <div class="impact-stats">
-            <div class="stat-box gradient-1">
-                <span class="stat-number" id="hoursCount">{{ user.hours_logged }}</span>
-                <span class="stat-label">Hours Logged</span>
+<div class="dashboard container" style="padding-top: 2rem; padding-bottom: 4rem;">
+    <div class="bento-grid">
+        <!-- Hero Card -->
+        <div class="bento-item" style="grid-column: span 8; padding: 3rem; display: flex; flex-direction: column; justify-content: space-between; background: linear-gradient(135deg, white 0%, #f8fafc 100%); position: relative; overflow: hidden;">
+            <div style="position: absolute; top: -20px; right: -20px; width: 150px; height: 150px; background: var(--brand-accent-soft); border-radius: 50%; filter: blur(40px); z-index: 0;"></div>
+            <div style="position: relative; z-index: 1;">
+                <h2 style="font-size: 3rem; font-weight: 900; letter-spacing: -2px; line-height: 1.1; margin-bottom: 1rem;">Welcome back,<br><span style="color: var(--brand-accent);">{{ user.name }}</span></h2>
+                <p style="font-size: 1.1rem; color: var(--text-secondary); font-weight: 500;">
+                    <i class="fa fa-map-marker" aria-hidden="true" style="margin-right: 5px; color: var(--brand-accent);"></i>{{ user.location }} 
+                    <span style="margin: 0 10px; opacity: 0.3;">|</span> 
+                    Expertise: {{ user.skills }}
+                </p>
+                <div style="margin-top: 2rem; display: flex; gap: 1rem; position: relative; z-index: 1;">
+                    <a href="{{ url_for('view_ngos') }}" class="btn btn-primary" style="padding: 0.8rem 1.8rem; font-weight: 700; display: flex; align-items: center; gap: 0.5rem; background: var(--text-primary); border-color: var(--text-primary);">
+                        <i class="fa-solid fa-earth-americas"></i> Discover NGOs
+                    </a>
+                    <a href="{{ url_for('edit_profile') }}" class="btn btn-outline" style="padding: 0.8rem 1.8rem; font-weight: 600; color: var(--text-primary); border-color: rgba(15, 23, 42, 0.1);">
+                        Edit Profile
+                    </a>
+                </div>
             </div>
-            <div class="stat-box gradient-2">
-                {% set badge_list = user.badges.split(',') if user.badges else [] %}
-                <span class="stat-number">{{ badge_list|length }}</span>
-                <span class="stat-label">Badges Earned</span>
+            <div style="margin-top: 4rem; display: flex; align-items: flex-end; gap: 1rem;">
+                <span style="font-size: 5rem; font-weight: 900; line-height: 1; letter-spacing: -4px;">{{ user.hours_logged }}</span>
+                <span style="font-size: 1.25rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; padding-bottom: 0.75rem; color: var(--text-secondary);">Hours Logged</span>
             </div>
         </div>
-        <div class="action-buttons">
-            <a href="{{ url_for('edit_profile') }}" class="btn btn-secondary">Edit Profile</a>
+
+        <!-- Missions Card -->
+        <div class="bento-item" style="grid-column: span 4; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; background: var(--text-primary); color: white;">
+            <div style="font-size: 4rem; margin-bottom: 0.5rem;">🎯</div>
+            <span style="font-size: 4rem; font-weight: 900; line-height: 1; letter-spacing: -2px;">{{ completed_apps }}</span>
+            <span style="font-size: 1rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.2em; margin-top: 1rem; opacity: 0.7;">Missions Done</span>
+        </div>
+
+        <!-- Progress Card -->
+        <div class="bento-item" style="grid-column: span 4; display: flex; flex-direction: column; justify-content: space-between;">
+            <div>
+                <h4 style="font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-secondary); margin-bottom: 1.5rem; font-weight: 800;">Next Tier Progress</h4>
+                <div style="display: flex; justify-content: space-between; font-weight: 700; margin-bottom: 0.5rem;">
+                    <span>{{ user.hours_logged }} Hours Logged</span>
+                    <span>Goal: {{ next_badge }}h</span>
+                </div>
+                <div style="width: 100%; height: 12px; background: var(--bg-light); border-radius: 6px; overflow: hidden;">
+                    <div id="tierProgressBar" style="height: 100%; width: 0; background: var(--brand-accent); transition: width 1.5s cubic-bezier(0.4, 0, 0.2, 1);"></div>
+                </div>
+            </div>
+            <p style="font-size: 0.9rem; color: var(--text-secondary); font-weight: 500; margin-top: 1rem;">
+                {% if user.hours_logged >= 100 %} 👑 You've reached the final tier! {% else %} Only <strong>{{ next_badge - user.hours_logged }} hours</strong> more to unlock your next badge. {% endif %}
+            </p>
+        </div>
+
+        <!-- Badges Card -->
+        <div class="bento-item" style="grid-column: span 8;">
+            <h4 style="font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-secondary); margin-bottom: 1.5rem; font-weight: 800;">Unlocked Achievements</h4>
+            <div class="badges-grid" style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                {% set badge_hours = {"It's Just The beginning": 1, "Helping Hand": 2, "Rising Star": 5, "Community Pillar": 10, "50 Hours Master": 50, "100 Hours Legend": 100} %}
+                {% if user.badges %}
+                    {% set user_badges = user.badges.split(',') | map('trim') | list %}
+                    {% for badge_name, hours in badge_hours.items() | sort(attribute='1') %}
+                        {% if badge_name in user_badges %}
+                        <div class="badge-item badge-hover-container" style="background: var(--bg-light); border: 1px solid var(--border-color); padding: 0.75rem 1.25rem; border-radius: 12px; display: flex; align-items: center; gap: 0.75rem;">
+                            <span style="font-size: 1.5rem;">🏅</span>
+                            <div class="badge-text-wrapper">
+                                <span class="badge-name" style="font-weight: 700; font-size: 0.95rem;">{{ badge_name }}</span>
+                                <span class="badge-hover-text" style="font-size: 0.8rem; font-weight: 600; color: var(--brand-accent);">{{ hours }} Hours</span>
+                            </div>
+                        </div>
+                        {% endif %}
+                    {% endfor %}
+                {% else %}
+                    <p style="color: var(--text-secondary); font-style: italic;">No badges earned yet. Start your first mission!</p>
+                {% endif %}
+            </div>
         </div>
     </div>
-
-    <!-- Gamification Section -->
-    {% if user.badges %}
-    <section class="badges-section">
-        <h3>Your Achievements 🏅</h3>
-        <div class="badges-grid">
-            {% for badge in user.badges.split(',') %}
-                {% if badge %}
-                <div class="badge-item glass-card tooltip" data-tooltip="Reward for your persistent impact">
-                    <span class="badge-icon">🌟</span>
-                    <span class="badge-name">{{ badge }}</span>
-                </div>
-                {% endif %}
-            {% endfor %}
-        </div>
-    </section>
-    {% endif %}
 
     <!-- Matching Algorithm Section -->
     <section class="matches-section">
@@ -49,27 +86,37 @@
             {% if matches %}
                 {% for match in matches %}
                 <div class="match-card glass-card hover-lift">
-                    <div class="match-header" style="align-items: center;">
-                        <h4 style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
+                    <!-- Zone 1: Header/Match Score -->
+                    <div class="match-header">
+                        <h4 style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap; margin:0;">
                             {{ match.opportunity.title }}
                             {% if match.opportunity.is_urgent %}
                             <span style="font-size:0.75rem; background:#fee2e2; color:#b91c1c; padding:2px 8px; border-radius:12px; white-space:nowrap; border:1px solid #fca5a5;">🚨 URGENT</span>
                             {% endif %}
                         </h4>
-                        <span class="match-score">{{ match.score * 15 + 50 }}% Match</span>
+                        <span class="match-score" style="font-size: 0.75rem; width: fit-content;">{{ match.score * 15 + 50 }}% Match</span>
                     </div>
-                    <p class="match-org">by <strong>{{ match.opportunity.ngo.name }}</strong> (<a href="https://www.google.com/maps/search/?api=1&query={{ match.opportunity.location | urlencode }}+India" target="_blank" style="color: inherit; text-decoration: underline;"><i class="fa fa-map-marker" aria-hidden="true" style="margin-right:2px;"></i>{{ match.opportunity.location }}</a>)</p>
-                    <p class="match-desc">{{ match.opportunity.description[:100] }}...</p>
-                    
-                    <div class="match-tags">
-                        <span class="tag">🕒 {{ match.opportunity.duration }}</span>
-                        {% for skill in match.opportunity.skills_required.split(',') %}
-                            {% if skill.strip() %}
-                            <span class="tag">#{{ skill.strip().lower()|replace(' ', '') }}</span>
-                            {% endif %}
-                        {% endfor %}
+
+                    <!-- Zone 2: Content & Details -->
+                    <div class="match-info-center">
+                        <p class="match-org" style="margin-bottom: 0.5rem;">by <strong>{{ match.opportunity.ngo.name }}</strong></p>
+                        <p class="match-desc" style="margin-bottom: 1rem;">{{ match.opportunity.description }}</p>
+                        <div class="match-tags">
+                            <span class="tag">📍 <a href="https://www.google.com/maps/search/?api=1&query={{ match.opportunity.location | urlencode }}+India" target="_blank" style="color: inherit; text-decoration: none;"><i class="fa-solid fa-location-dot" style="margin-right:4px;"></i>{{ match.opportunity.location }}</a></span>
+                            <span class="tag">🕒 {{ match.opportunity.duration }}</span>
+                            {% for skill in match.opportunity.skills_required.split(',') %}
+                                {% if skill.strip() %}
+                                <span class="tag">#{{ skill.strip().lower()|replace(' ', '') }}</span>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
                     </div>
-                    <a href="{{ url_for('make_application', opp_id=match.opportunity.id) }}" class="btn btn-primary btn-sm btn-block mt-3" style="text-align: center; display: block;">Apply Now</a>
+
+                    <!-- Zone 3: Actions -->
+                    <div class="match-actions-end">
+                        <a href="{{ url_for('make_application', opp_id=match.opportunity.id) }}" class="btn btn-primary btn-sm btn-block">Apply Now</a>
+                        <button type="button" class="btn btn-outline btn-sm btn-block" style="border-color: #e2e8f0; color: #64748b;" onclick="this.closest('.match-card').style.opacity = '0'; setTimeout(() => this.closest('.match-card').remove(), 300);">Dismiss</button>
+                    </div>
                 </div>
                 {% endfor %}
             {% else %}
@@ -80,5 +127,19 @@
         </div>
     </section>
 </div>
+
+{% block scripts %}
+<script>
+    // Set dynamic progress bar width to avoid CSS linting errors in HTML
+    window.addEventListener('DOMContentLoaded', () => {
+        const progressBar = document.getElementById('tierProgressBar');
+        if (progressBar) {
+            setTimeout(() => {
+                progressBar.style.width = '{{ progress_pct }}%';
+            }, 100);
+        }
+    });
+</script>
+{% endblock %}
 
 {% endblock %}

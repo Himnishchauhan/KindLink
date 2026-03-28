@@ -1,43 +1,39 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<section class="hero glass">
-    <div class="hero-content">
-        <h1>Connect with Causes that <span class="highlight">Matter</span></h1>
-        <p>KindLink intelligently matches passionate volunteers with impactful NGOs, transforming skills and availability into real-world change.</p>
-        <div class="hero-buttons">
-            <a href="{{ url_for('register') }}?role=volunteer" class="btn btn-primary btn-large">Join as Volunteer</a>
-            <a href="{{ url_for('register') }}?role=ngo" class="btn btn-secondary btn-large">Register your NGO</a>
-        </div>
-    </div>
-    <div class="hero-image">
-        <div class="abstract-shape shape-1"></div>
-        <div class="abstract-shape shape-2"></div>
-        <div class="glass-card mockup-card">
-            <h3>Find your perfect match</h3>
-            <p>Our smart algorithm pairs your unique skills with the ideal volunteer opportunities near you.</p>
+<section class="hero" style="background: linear-gradient(to bottom, #ffffff 0%, #f8fafc 100%); padding: 8rem 0; text-align: center; border-bottom: 1px solid var(--border-color);">
+    <div class="container hero-content">
+        <h1 style="font-size: 5rem; font-weight: 900; letter-spacing: -3px; line-height: 1; color: var(--text-primary); margin-bottom: 2rem;">
+            KindLink: The <span style="color: var(--brand-accent);">Impact-First</span><br>Volunteer Network
+        </h1>
+        <p style="font-size: 1.4rem; color: var(--text-secondary); max-width: 800px; margin: 0 auto 3rem auto; font-weight: 500; line-height: 1.5;">
+            Intelligently matching global expertise with local NGO missions. Precision volunteering for real-world change.
+        </p>
+        <div class="hero-buttons" style="display: flex; gap: 1.5rem; justify-content: center;">
+            <a href="{{ url_for('register') }}?role=volunteer" class="btn btn-primary" style="padding: 1rem 2.5rem; font-size: 1.1rem;">Join as Volunteer</a>
+            <a href="{{ url_for('register') }}?role=ngo" class="btn btn-secondary" style="padding: 1rem 2.5rem; font-size: 1.1rem;">Register NGO</a>
         </div>
     </div>
 </section>
 
-<section class="features">
+<section class="features" style="padding: 8rem 0; background: #ffffff;">
     <div class="container">
-        <h2 class="section-title">How it Works</h2>
-        <div class="grid features-grid">
-            <div class="feature-card">
-                <div class="feature-icon">🔍</div>
-                <h3>Intelligent Matching</h3>
-                <p>We analyze skills, interests, and schedules to find the perfect synergy between volunteers and NGOs.</p>
+        <h2 class="section-title" style="font-size: 2.5rem; font-weight: 900; letter-spacing: -1px; margin-bottom: 4rem;">Platform Architecture</h2>
+        <div class="grid features-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 2.5rem;">
+            <div class="feature-card glass-card">
+                <div class="feature-icon" style="font-size: 3rem; margin-bottom: 1.5rem;">⚡</div>
+                <h3 style="font-weight: 800; margin-bottom: 1rem;">Intelligent Matching</h3>
+                <p style="color: var(--text-secondary); font-weight: 500;">Proprietary algorithms that analyze skills and mission objectives for maximum synergy.</p>
             </div>
-            <div class="feature-card">
-                <div class="feature-icon">📅</div>
-                <h3>Seamless Scheduling</h3>
-                <p>Manage your commitments easily with our integrated calendar and automated reminders.</p>
+            <div class="feature-card glass-card">
+                <div class="feature-icon" style="font-size: 3rem; margin-bottom: 1.5rem;">📅</div>
+                <h3 style="font-weight: 800; margin-bottom: 1rem;">Unified Scheduling</h3>
+                <p style="color: var(--text-secondary); font-weight: 500;">Seamless coordination between organizations and contributors with real-time syncing.</p>
             </div>
-            <div class="feature-card">
-                <div class="feature-icon">🏅</div>
-                <h3>Smart Impact Tracking</h3>
-                <p>Earn badges, unlock achievements, and visualize your real-world impact as you complete missions.</p>
+            <div class="feature-card glass-card">
+                <div class="feature-icon" style="font-size: 3rem; margin-bottom: 1.5rem;">🏗️</div>
+                <h3 style="font-weight: 800; margin-bottom: 1rem;">Impact Metering</h3>
+                <p style="color: var(--text-secondary); font-weight: 500;">Quantifiable achievement tracking and real-time visualization of your global footprint.</p>
             </div>
         </div>
     </div>

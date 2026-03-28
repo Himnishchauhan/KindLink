@@ -126,6 +126,7 @@ def login():
                 return redirect(url_for('ngo_dashboard'))
         else:
             flash('Invalid email or password', 'error')
+            return render_template('login.html', email=email)
     
     return render_template('login.html')
 
@@ -161,8 +162,60 @@ def volunteer_dashboard():
     
     # Sort by score desc
     matches.sort(key=lambda x: x['score'], reverse=True)
+    # Calculate Impact Dashboard variables
+    user_apps = Application.query.filter_by(volunteer_id=user.id).all()
+    total_apps = len(user_apps)
+    completed_apps = len([a for a in user_apps if getattr(a, 'is_completed', False)])
+    pending_apps = len([a for a in user_apps if getattr(a, 'status', 'pending') == 'pending'])
     
-    return render_template('volunteer_dashboard.html', user=user, matches=matches[:5])
+    milestones = [1, 2, 5, 10, 50, 100]
+    next_badge = next((m for m in milestones if m > user.hours_logged), 100)
+    prev_badge = next((m for m in reversed(milestones) if m <= user.hours_logged), 0)
+    
+    if user.hours_logged >= 100:
+        progress_pct = 100
+    else:
+        progress_pct = int(((user.hours_logged - prev_badge) / (next_badge - prev_badge)) * 100) if next_badge > prev_badge else 100
+
+    return render_template('volunteer_dashboard.html', user=user, matches=matches[:5], total_apps=total_apps, completed_apps=completed_apps, pending_apps=pending_apps, next_badge=next_badge, progress_pct=progress_pct)
+
+@app.route('/view_ngos')
+def view_ngos():
+    if 'user_id' not in session: return redirect(url_for('login'))
+    user = User.query.get(session['user_id'])
+    if user.role != 'volunteer': return redirect(url_for('index'))
+    
+    ngos = User.query.filter_by(role='ngo').all()
+    # Prepare NGO data with active opportunity count
+    ngo_list = []
+    for ngo in ngos:
+        # Check for count of active (non-completed) opportunities
+        active_opp_count = Opportunity.query.filter_by(ngo_id=ngo.id).count()
+        ngo_list.append({
+            'user': ngo,
+            'active_opp_count': active_opp_count
+        })
+    
+    return render_template('view_ngos.html', ngos=ngo_list)
+
+@app.route('/view_volunteers')
+def view_volunteers():
+    if 'user_id' not in session: return redirect(url_for('login'))
+    user = User.query.get(session['user_id'])
+    if user.role != 'ngo': return redirect(url_for('index'))
+    
+    volunteers = User.query.filter_by(role='volunteer').all()
+    # Prepare volunteer data with missions count
+    vol_list = []
+    for vol in volunteers:
+        # Check for count of completed applications
+        missions_done = Application.query.filter_by(volunteer_id=vol.id, is_completed=True).count()
+        vol_list.append({
+            'user': vol,
+            'missions_done': missions_done
+        })
+    
+    return render_template('view_volunteers.html', volunteers=vol_list)
 
 @app.route('/ngo')
 def ngo_dashboard():
@@ -176,6 +229,10 @@ def ngo_dashboard():
     
     unique_volunteer_ids = {app_rec.volunteer_id for app_rec in applications}
     total_reach = len(unique_volunteer_ids)
+    
+    completed_missions = len([a for a in applications if getattr(a, 'is_completed', False)])
+    accepted_apps = len([a for a in applications if getattr(a, 'status', 'pending') == 'accepted' or getattr(a, 'is_completed', False)])
+    success_rate = int((completed_missions / accepted_apps * 100)) if accepted_apps > 0 else 0
     
     # Compute Match % for each application
     for app_rec in applications:
@@ -195,8 +252,7 @@ def ngo_dashboard():
             for s in skills:
                 skill_counts[s] = skill_counts.get(s, 0) + 1
     trending_skill = max(skill_counts, key=skill_counts.get) if skill_counts else "None yet"
-        
-    return render_template('ngo_dashboard.html', user=user, opps=opps, applications=applications, trending_skill=trending_skill, total_reach=total_reach)
+    return render_template('ngo_dashboard.html', user=user, opps=opps, applications=applications, trending_skill=trending_skill, total_reach=total_reach, completed_missions=completed_missions, success_rate=success_rate)
 
 @app.route('/opportunity/new', methods=['GET', 'POST'])
 def new_opportunity():
@@ -390,6 +446,15 @@ def complete_application(app_id):
     
     # Gamification
     badges = app_record.volunteer.badges.split(',') if app_record.volunteer.badges else []
+    
+    if app_record.volunteer.hours_logged >= 1 and "It's Just The beginning" not in badges:
+        badges.append("It's Just The beginning")
+    if app_record.volunteer.hours_logged >= 2 and 'Helping Hand' not in badges:
+        badges.append('Helping Hand')
+    if app_record.volunteer.hours_logged >= 5 and 'Rising Star' not in badges:
+        badges.append('Rising Star')
+    if app_record.volunteer.hours_logged >= 10 and 'Community Pillar' not in badges:
+        badges.append('Community Pillar')
     if app_record.volunteer.hours_logged >= 50 and '50 Hours Master' not in badges:
         badges.append('50 Hours Master')
     if app_record.volunteer.hours_logged >= 100 and '100 Hours Legend' not in badges:
@@ -399,6 +464,39 @@ def complete_application(app_id):
     db.session.commit()
     flash(f"Volunteer marked as completed. {hours_awarded} hours logged!", 'success')
     return redirect(url_for('ngo_dashboard'))
+
+@app.route('/delete_opportunity/<int:opp_id>', methods=['POST'])
+def delete_opportunity(opp_id):
+    if 'user_id' not in session or session.get('role') != 'ngo':
+        return redirect(url_for('login'))
+        
+    opp = Opportunity.query.get_or_404(opp_id)
+    if opp.ngo_id != session['user_id']:
+        flash('Unauthorized action', 'error')
+        return redirect(url_for('ngo_dashboard'))
+        
+    # Delete all associated applications first
+    Application.query.filter_by(opportunity_id=opp.id).delete()
+    
+    db.session.delete(opp)
+    db.session.commit()
+    flash('Opportunity deleted successfully.', 'success')
+    return redirect(url_for('ngo_dashboard'))
+
+@app.route('/withdraw_application/<int:app_id>', methods=['POST'])
+def withdraw_application(app_id):
+    if 'user_id' not in session or session.get('role') != 'volunteer':
+        return redirect(url_for('login'))
+        
+    app_record = Application.query.get_or_404(app_id)
+    if app_record.volunteer_id != session['user_id']:
+        flash('Unauthorized action', 'error')
+        return redirect(url_for('volunteer_dashboard'))
+        
+    db.session.delete(app_record)
+    db.session.commit()
+    flash('Application withdrawn successfully.', 'success')
+    return redirect(url_for('volunteer_dashboard'))
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
