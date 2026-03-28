@@ -30,6 +30,7 @@ body {
     min-height: 100vh;
     display: flex;
     flex-direction: column;
+    padding-top: 80px; /* Offset for the fixed navbar */
     word-wrap: break-word;
     overflow-wrap: break-word;
 }
@@ -110,10 +111,12 @@ a:hover {
 /* Navbar */
 .navbar {
     padding: 1.25rem 0;
-    position: sticky;
+    position: fixed;
     top: 0;
-    z-index: 100;
-    background-color: rgba(255, 255, 255, 0.8);
+    left: 0;
+    width: 100%;
+    z-index: 1000;
+    background-color: rgba(255, 255, 255, 0.85);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     border-bottom: 1px solid var(--border-color);
