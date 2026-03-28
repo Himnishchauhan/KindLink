@@ -92,6 +92,87 @@ class Donation(db.Model):
     razorpay_payment_id = db.Column(db.String(255))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
+class ImpactMetric(db.Model):
+    """Tracks real-world impact logged when an NGO marks a volunteer's work as complete."""
+    id = db.Column(db.Integer, primary_key=True)
+    application_id = db.Column(db.Integer, db.ForeignKey('application.id'), nullable=False)
+    volunteer_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    ngo_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    metric_type = db.Column(db.String(50), nullable=False)  # e.g. 'trees_planted', 'students_taught'
+    metric_value = db.Column(db.Integer, default=0)
+    description = db.Column(db.String(255), default='')
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    application = db.relationship('Application', backref=db.backref('impact_metrics', lazy=True))
+    volunteer = db.relationship('User', foreign_keys=[volunteer_id], backref=db.backref('impact_metrics', lazy=True))
+    ngo = db.relationship('User', foreign_keys=[ngo_id], backref=db.backref('impact_logged', lazy=True))
+
+class Reward(db.Model):
+    """Rewards earned by volunteers based on their impact milestones."""
+    id = db.Column(db.Integer, primary_key=True)
+    volunteer_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    reward_type = db.Column(db.String(50), nullable=False)  # 'amazon_voucher', 'scratch_card', 'cash_prize', 'badge_reward'
+    reward_title = db.Column(db.String(100), nullable=False)
+    reward_value = db.Column(db.String(100), default='')   # e.g. '₹500', '10% discount'
+    reward_code = db.Column(db.String(50), default='')     # Promo/scratch code
+    milestone_trigger = db.Column(db.String(100), default='')  # e.g. '50 trees planted'
+    status = db.Column(db.String(20), default='unclaimed')  # 'unclaimed', 'claimed'
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    claimed_at = db.Column(db.DateTime, nullable=True)
+
+    volunteer = db.relationship('User', backref=db.backref('rewards', lazy=True))
+
+# ── Impact metric definitions ──────────────────────────────────────────────────
+IMPACT_METRIC_CONFIG = {
+    'trees_planted':     {'label': '🌳 Trees Planted',     'unit': 'trees',    'emoji': '🌳'},
+    'students_taught':   {'label': '📚 Students Taught',   'unit': 'students', 'emoji': '📚'},
+    'meals_served':      {'label': '🍱 Meals Served',       'unit': 'meals',    'emoji': '🍱'},
+    'animals_rescued':   {'label': '🐾 Animals Rescued',   'unit': 'animals',  'emoji': '🐾'},
+    'houses_built':      {'label': '🏠 Houses Built',      'unit': 'houses',   'emoji': '🏠'},
+    'km_cleaned':        {'label': '🧹 KMs Cleaned',       'unit': 'km',       'emoji': '🧹'},
+    'people_helped':     {'label': '🤝 People Helped',     'unit': 'people',   'emoji': '🤝'},
+    'awareness_events':  {'label': '📢 Awareness Events',  'unit': 'events',   'emoji': '📢'},
+}
+
+# ── Reward milestone thresholds ────────────────────────────────────────────────
+# Each entry: (total_impact_points_threshold, reward_type, title, value, code_prefix)
+REWARD_MILESTONES = [
+    (10,   'scratch_card',    '🎰 Scratch Card',        'Mystery Prize', 'SCRATCH'),
+    (25,   'amazon_voucher',  '🛒 Amazon ₹250',         '₹25',           'AMZN250'),
+    (50,   'amazon_voucher',  '🛒 Amazon ₹500',         '₹50',           'AMZN500'),
+    (100,  'cash_prize',      '💰 Cash Prize',          '₹100',          'CASH100'),
+    (200,  'cash_prize',      '💰 Cash Prize',          '₹200',          'CASH200'),
+    (500,  'amazon_voucher',  '🛒 Amazon ₹300',         '₹300',          'AMZN300'),
+    (1000, 'cash_prize',      '🏆 Grand Cash Prize',    '₹500',          'GRAND500'),
+]
+
+def compute_total_impact_points(volunteer_id):
+    """Sum all impact metric values for a volunteer (1 point per unit)."""
+    metrics = ImpactMetric.query.filter_by(volunteer_id=volunteer_id).all()
+    return sum(m.metric_value for m in metrics)
+
+def auto_assign_rewards(volunteer, total_points):
+    """Check milestones and assign new rewards if not already granted."""
+    import random, string
+    existing_milestones = {r.milestone_trigger for r in volunteer.rewards}
+    new_rewards = []
+    for threshold, rtype, title, value, code_prefix in REWARD_MILESTONES:
+        trigger_key = f'{threshold}_impact_points'
+        if total_points >= threshold and trigger_key not in existing_milestones:
+            code = code_prefix + '-' + ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
+            reward = Reward(
+                volunteer_id=volunteer.id,
+                reward_type=rtype,
+                reward_title=title,
+                reward_value=value,
+                reward_code=code,
+                milestone_trigger=trigger_key,
+                status='unclaimed'
+            )
+            db.session.add(reward)
+            new_rewards.append(title)
+    return new_rewards
+
 with app.app_context():
     db.create_all()
 
@@ -245,38 +326,72 @@ def view_ngos():
     user = None
     if 'user_id' in session:
         user = User.query.get(session['user_id'])
-    
+
+    # Read filter params
+    filter_location = request.args.get('location', '').strip().lower()
+    filter_mission  = request.args.get('mission', '').strip().lower()
+    filter_active   = request.args.get('active_only', '')
+
     ngos = User.query.filter_by(role='ngo').all()
-    # Prepare NGO data with active opportunity count
     ngo_list = []
     for ngo in ngos:
-        # Check for count of active (non-completed) opportunities
         active_opp_count = Opportunity.query.filter_by(ngo_id=ngo.id).count()
+
+        # Apply filters
+        if filter_location and filter_location not in (ngo.location or '').lower():
+            continue
+        if filter_mission and filter_mission not in (ngo.mission or '').lower():
+            continue
+        if filter_active == 'on' and active_opp_count == 0:
+            continue
+
         ngo_list.append({
             'user': ngo,
             'active_opp_count': active_opp_count
         })
-    
-    return render_template('view_ngos.html', ngos=ngo_list)
+
+    return render_template('view_ngos.html', ngos=ngo_list,
+                           filter_location=filter_location,
+                           filter_mission=filter_mission,
+                           filter_active=filter_active)
 
 @app.route('/view_volunteers')
 def view_volunteers():
     if 'user_id' not in session: return redirect(url_for('login'))
     user = User.query.get(session['user_id'])
     if user.role != 'ngo': return redirect(url_for('index'))
-    
+
+    # Read filter params from query string
+    filter_location     = request.args.get('location', '').strip().lower()
+    filter_availability = request.args.get('availability', '').strip().lower()
+    filter_interests    = request.args.get('interests', '').strip().lower()
+    filter_available_now = request.args.get('available_now', '')
+
     volunteers = User.query.filter_by(role='volunteer').all()
-    # Prepare volunteer data with missions count
+
     vol_list = []
     for vol in volunteers:
-        # Check for count of completed applications
+        # Apply filters
+        if filter_location and filter_location not in (vol.location or '').lower():
+            continue
+        if filter_availability and filter_availability not in (vol.availability or '').lower():
+            continue
+        if filter_interests and filter_interests not in (vol.interests or '').lower():
+            continue
+        if filter_available_now == 'on' and not vol.is_available_now:
+            continue
+
         missions_done = Application.query.filter_by(volunteer_id=vol.id, is_completed=True).count()
         vol_list.append({
             'user': vol,
             'missions_done': missions_done
         })
-    
-    return render_template('view_volunteers.html', volunteers=vol_list)
+
+    return render_template('view_volunteers.html', volunteers=vol_list,
+                           filter_location=filter_location,
+                           filter_availability=filter_availability,
+                           filter_interests=filter_interests,
+                           filter_available_now=filter_available_now)
 
 @app.route('/ngo/showcase/<int:ngo_id>')
 def ngo_showcase(ngo_id):
@@ -514,7 +629,7 @@ def complete_application(app_id):
     app_record.is_completed = True
     app_record.volunteer.hours_logged += hours_awarded
     
-    # Gamification
+    # Gamification — hour-based badges
     badges = app_record.volunteer.badges.split(',') if app_record.volunteer.badges else []
     
     if app_record.volunteer.hours_logged >= 1 and "It's Just The beginning" not in badges:
@@ -531,8 +646,38 @@ def complete_application(app_id):
         badges.append('100 Hours Legend')
     
     app_record.volunteer.badges = ','.join([b for b in badges if b])
+
+    # ── Impact Metrics ──────────────────────────────────────────────────────
+    metric_type  = request.form.get('metric_type', '').strip()
+    metric_value = int(request.form.get('metric_value', 0) or 0)
+    metric_note  = request.form.get('metric_note', '').strip()
+
+    new_rewards_earned = []
+    if metric_type and metric_value > 0 and metric_type in IMPACT_METRIC_CONFIG:
+        metric = ImpactMetric(
+            application_id=app_record.id,
+            volunteer_id=app_record.volunteer_id,
+            ngo_id=user.id,
+            metric_type=metric_type,
+            metric_value=metric_value,
+            description=metric_note
+        )
+        db.session.add(metric)
+        db.session.flush()  # get the metric into DB so points are computed correctly
+
+        # Auto-assign rewards based on cumulative impact points
+        total_pts = compute_total_impact_points(app_record.volunteer_id)
+        new_rewards_earned = auto_assign_rewards(app_record.volunteer, total_pts)
+
     db.session.commit()
-    flash(f"Volunteer marked as completed. {hours_awarded} hours logged!", 'success')
+
+    msg = f"Volunteer marked as completed. {hours_awarded} hours logged!"
+    if metric_type and metric_value > 0:
+        cfg = IMPACT_METRIC_CONFIG.get(metric_type, {})
+        msg += f" Impact logged: {metric_value} {cfg.get('unit', 'units')}."
+    if new_rewards_earned:
+        msg += f" 🎉 Volunteer earned: {', '.join(new_rewards_earned)}!"
+    flash(msg, 'success')
     return redirect(url_for('ngo_dashboard'))
 
 @app.route('/delete_opportunity/<int:opp_id>', methods=['POST'])
@@ -643,6 +788,57 @@ def donation_success(donation_id):
 def donation_cancel():
     flash('Donation cancelled. Your support still matters!', 'info')
     return redirect(url_for('donate'))
+
+# ── Rewards Routes ─────────────────────────────────────────────────────────────
+@app.route('/rewards')
+def my_rewards():
+    if 'user_id' not in session: return redirect(url_for('login'))
+    user = User.query.get(session['user_id'])
+    if user.role != 'volunteer': return redirect(url_for('index'))
+
+    # Aggregate impact metrics by type
+    metrics = ImpactMetric.query.filter_by(volunteer_id=user.id).all()
+    impact_summary = {}
+    for m in metrics:
+        if m.metric_type not in impact_summary:
+            impact_summary[m.metric_type] = 0
+        impact_summary[m.metric_type] += m.metric_value
+
+    total_impact_points = sum(impact_summary.values())
+    rewards = Reward.query.filter_by(volunteer_id=user.id).order_by(Reward.created_at.desc()).all()
+
+    # Compute progress to next milestone
+    next_milestone = None
+    for threshold, _, title, value, _ in REWARD_MILESTONES:
+        if total_impact_points < threshold:
+            next_milestone = {'threshold': threshold, 'title': title, 'value': value,
+                              'progress': int((total_impact_points / threshold) * 100)}
+            break
+
+    return render_template('rewards.html',
+                           user=user,
+                           impact_summary=impact_summary,
+                           impact_config=IMPACT_METRIC_CONFIG,
+                           total_impact_points=total_impact_points,
+                           rewards=rewards,
+                           next_milestone=next_milestone)
+
+@app.route('/rewards/claim/<int:reward_id>', methods=['POST'])
+def claim_reward(reward_id):
+    if 'user_id' not in session: return redirect(url_for('login'))
+    user = User.query.get(session['user_id'])
+    reward = Reward.query.get_or_404(reward_id)
+    if reward.volunteer_id != user.id:
+        flash('Unauthorized action.', 'error')
+        return redirect(url_for('my_rewards'))
+    if reward.status == 'claimed':
+        flash('This reward has already been claimed.', 'info')
+        return redirect(url_for('my_rewards'))
+    reward.status = 'claimed'
+    reward.claimed_at = datetime.utcnow()
+    db.session.commit()
+    flash(f'🎉 Reward "{reward.reward_title}" claimed! Code: {reward.reward_code}', 'success')
+    return redirect(url_for('my_rewards'))
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)

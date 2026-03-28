@@ -14,6 +14,48 @@
         </div>
     </div>
 
+    <!-- Filter Panel -->
+    <section style="margin-bottom: 2rem;">
+        <form method="GET" action="{{ url_for('view_ngos') }}" id="filterForm">
+            <div class="glass-card" style="padding: 1.5rem 2rem;">
+                <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.25rem;">
+                    <i class="fa-solid fa-filter" style="color: var(--brand-accent);"></i>
+                    <h4 style="margin: 0; font-size: 1rem; font-weight: 700;">Filter NGOs</h4>
+                    {% if filter_location or filter_mission or filter_active %}
+                    <a href="{{ url_for('view_ngos') }}" style="margin-left: auto; font-size: 0.8rem; color: #ef4444; font-weight: 600; text-decoration: none;">✕ Clear Filters</a>
+                    {% endif %}
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; align-items: end;">
+                    <div>
+                        <label style="font-size: 0.8rem; font-weight: 700; color: var(--text-secondary); display: block; margin-bottom: 0.4rem; text-transform: uppercase; letter-spacing: 0.05em;">📍 Location</label>
+                        <input type="text" name="location" value="{{ filter_location }}" placeholder="e.g. Mumbai" class="form-control" style="padding: 0.55rem 0.9rem; font-size: 0.9rem;">
+                    </div>
+                    <div>
+                        <label style="font-size: 0.8rem; font-weight: 700; color: var(--text-secondary); display: block; margin-bottom: 0.4rem; text-transform: uppercase; letter-spacing: 0.05em;">💡 Mission / Interests</label>
+                        <input type="text" name="mission" value="{{ filter_mission }}" placeholder="e.g. education, food" class="form-control" style="padding: 0.55rem 0.9rem; font-size: 0.9rem;">
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 0.6rem; padding-bottom: 0.3rem;">
+                        <input type="checkbox" id="active_only" name="active_only" value="on" {% if filter_active == 'on' %}checked{% endif %} style="width: 18px; height: 18px; accent-color: var(--brand-accent); cursor: pointer;">
+                        <label for="active_only" style="font-size: 0.9rem; font-weight: 600; cursor: pointer; margin: 0;">✅ Has Active Opportunities</label>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                        <button type="submit" class="btn btn-primary" style="width: 100%; padding: 0.6rem 1rem; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+                            <i class="fa-solid fa-magnifying-glass"></i> Apply Filters
+                        </button>
+                        <a href="{{ url_for('view_ngos') }}" class="btn btn-outline" style="width: 100%; padding: 0.6rem 1rem; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 0.5rem; text-align: center; color: var(--text-secondary); border-color: rgba(15,23,42,0.15);">
+                            <i class="fa-solid fa-rotate-left"></i> Reset Filters
+                        </a>
+                    </div>
+                </div>
+                {% if ngos is defined %}
+                <p style="margin-top: 1rem; font-size: 0.85rem; color: var(--text-secondary); font-weight: 500;">
+                    Showing <strong>{{ ngos|length }}</strong> NGO{{ 's' if ngos|length != 1 else '' }}
+                </p>
+                {% endif %}
+            </div>
+        </form>
+    </section>
+
     <section class="matches-section">
         <div class="matches-grid">
             {% if ngos %}

@@ -182,8 +182,24 @@
                             
                             {% if not app.is_completed %}
                                 <form method="POST" action="{{ url_for('complete_application', app_id=app.id) }}" style="margin-top: 1rem; display: flex; flex-direction: column; gap: 0.5rem;">
-                                    <input type="number" name="hours" placeholder="Enter Hours to Log" required min="1" class="form-control" style="padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 4px;">
-                                    <button type="submit" class="btn btn-primary btn-block">Work Completed ✅</button>
+                                    <input type="number" name="hours" placeholder="Hours to Log" required min="1" class="form-control" style="padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 4px; font-size: 0.9rem;">
+                                    <div style="border: 1px dashed var(--brand-accent-soft); border-radius: 8px; padding: 0.75rem; background: linear-gradient(135deg, #fafffe, #f0fdf4); margin-top: 0.25rem;">
+                                        <p style="font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: var(--brand-accent); margin: 0 0 0.5rem 0;">🌱 Log Real-World Impact</p>
+                                        <select name="metric_type" class="form-control" style="padding: 0.45rem 0.5rem; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.85rem; width: 100%; margin-bottom: 0.4rem; background: white;">
+                                            <option value="">— Select Impact Type —</option>
+                                            <option value="trees_planted">🌳 Trees Planted</option>
+                                            <option value="students_taught">📚 Students Taught</option>
+                                            <option value="meals_served">🍱 Meals Served</option>
+                                            <option value="animals_rescued">🐾 Animals Rescued</option>
+                                            <option value="houses_built">🏠 Houses Built</option>
+                                            <option value="km_cleaned">🧹 KMs Cleaned</option>
+                                            <option value="people_helped">🤝 People Helped</option>
+                                            <option value="awareness_events">📢 Awareness Events</option>
+                                        </select>
+                                        <input type="number" name="metric_value" placeholder="How many? (e.g. 50)" min="1" class="form-control" style="padding: 0.45rem 0.5rem; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.85rem; width: 100%; margin-bottom: 0.4rem;">
+                                        <input type="text" name="metric_note" placeholder="Note (optional)" class="form-control" style="padding: 0.45rem 0.5rem; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.85rem; width: 100%;">
+                                    </div>
+                                    <button type="submit" class="btn btn-primary btn-block" style="margin-top: 0.25rem;">Work Completed ✅</button>
                                 </form>
                             {% else %}
                                 <div style="margin-top: 1rem; padding: 0.75rem; background: #dcfce7; color: #166534; border-radius: 8px; text-align: center; font-weight: 700; border: 1px solid #bcf0da;">

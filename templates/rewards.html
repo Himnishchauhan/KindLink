@@ -1,0 +1,386 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+    :root {
+        --primary: #6366f1;
+        --secondary: #94a3b8;
+        --success: #10b981;
+        --bg-subtle: #f8fafc;
+        --border: #e2e8f0;
+        --text-main: #1e293b;
+        --text-muted: #64748b;
+    }
+
+    .rewards-container {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 2rem 1rem;
+    }
+
+    .minimal-hero {
+        text-align: center;
+        padding: 3rem 0;
+        border-bottom: 1px solid var(--border);
+        margin-bottom: 3rem;
+    }
+
+    .minimal-hero h1 {
+        font-size: 2.5rem;
+        font-weight: 800;
+        color: var(--text-main);
+        letter-spacing: -0.02em;
+        margin-bottom: 0.5rem;
+    }
+
+    .minimal-hero p {
+        color: var(--text-muted);
+        font-size: 1.1rem;
+        max-width: 600px;
+        margin: 0 auto 2rem;
+    }
+
+    .hero-stats {
+        display: flex;
+        justify-content: center;
+        gap: 4rem;
+    }
+
+    .hero-stat-item {
+        text-align: center;
+    }
+
+    .hero-stat-value {
+        font-size: 2rem;
+        font-weight: 800;
+        color: var(--primary);
+        display: block;
+    }
+
+    .hero-stat-label {
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        color: var(--text-muted);
+        letter-spacing: 0.05em;
+    }
+
+    .section-title {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: var(--text-main);
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .impact-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin-bottom: 3rem;
+    }
+
+    .impact-pill {
+        background: white;
+        border: 1px solid var(--border);
+        border-radius: 99px;
+        padding: 0.5rem 1.25rem;
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        font-weight: 600;
+        color: var(--text-main);
+        font-size: 0.9rem;
+    }
+
+    .impact-pill .impact-count {
+        color: var(--primary);
+        font-weight: 800;
+    }
+
+    .rewards-layout {
+        display: grid;
+        grid-template-columns: 1fr 300px;
+        gap: 3rem;
+    }
+
+    .reward-minimal-card {
+        background: white;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        transition: border-color 0.2s;
+    }
+
+    .reward-minimal-card:hover {
+        border-color: var(--primary);
+    }
+
+    .reward-minimal-card.claimed {
+        background: var(--bg-subtle);
+        opacity: 0.7;
+    }
+
+    .reward-info h3 {
+        font-size: 1rem;
+        font-weight: 700;
+        margin-bottom: 0.25rem;
+        color: var(--text-main);
+    }
+
+    .reward-info p {
+        font-size: 1.2rem;
+        font-weight: 800;
+        color: var(--primary);
+    }
+
+    .reward-code-inline {
+        font-family: monospace;
+        background: var(--bg-subtle);
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.9rem;
+        color: var(--text-muted);
+        margin-top: 0.5rem;
+        display: inline-block;
+    }
+
+    .reward-action-btn {
+        background: var(--primary);
+        color: white;
+        border: none;
+        padding: 0.6rem 1.25rem;
+        border-radius: 8px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: opacity 0.2s;
+        text-decoration: none;
+        font-size: 0.9rem;
+    }
+
+    .reward-action-btn:hover {
+        opacity: 0.9;
+    }
+
+    .claimed-status {
+        color: var(--success);
+        font-weight: 700;
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+    }
+
+    .minimal-progress-card {
+        background: var(--bg-subtle);
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .progress-header {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.85rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: var(--text-muted);
+    }
+
+    .minimal-bar-bg {
+        height: 8px;
+        background: #e2e8f0;
+        border-radius: 10px;
+        overflow: hidden;
+    }
+
+    .minimal-bar-fill {
+        height: 100%;
+        background: var(--primary);
+        transition: width 1s ease;
+        width: 0;
+    }
+
+    .ladder-minimal {
+        background: white;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 1.5rem;
+    }
+
+    .ladder-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.5rem 0;
+        border-bottom: 1px solid var(--bg-subtle);
+    }
+
+    .ladder-item:last-child { border-bottom: none; }
+
+    .ladder-icon {
+        width: 24px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.9rem;
+    }
+
+    .ladder-name {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--text-main);
+    }
+
+    .ladder-pts {
+        font-size: 0.75rem;
+        color: var(--text-muted);
+        margin-left: auto;
+    }
+
+    .ladder-item.locked { opacity: 0.4; filter: grayscale(1); }
+
+    @media (max-width: 768px) {
+        .rewards-layout { grid-template-columns: 1fr; }
+        .hero-stats { gap: 1.5rem; }
+    }
+</style>
+
+<div class="rewards-container">
+    <header class="minimal-hero">
+        <h1>Impact Hub</h1>
+        <p>Your contributions turn into real rewards. Track your progress and claim your prizes below.</p>
+        
+        <div class="hero-stats">
+            <div class="hero-stat-item">
+                <span class="hero-stat-value">{{ total_impact_points }}</span>
+                <span class="hero-stat-label">Impact Points</span>
+            </div>
+            <div class="hero-stat-item">
+                <span class="hero-stat-value">{{ rewards | length }}</span>
+                <span class="hero-stat-label">Prizes Won</span>
+            </div>
+            <div class="hero-stat-item">
+                <span class="hero-stat-value" style="color: var(--success);">{{ rewards | selectattr('status', 'equalto', 'unclaimed') | list | length }}</span>
+                <span class="hero-stat-label">To Claim</span>
+            </div>
+        </div>
+    </header>
+
+    <div class="rewards-layout">
+        <main>
+            <!-- Impact Pills -->
+            <h2 class="section-title"><span>🌍</span> Current Impact</h2>
+            <div class="impact-list">
+                {% if impact_summary %}
+                    {% for metric_key, total in impact_summary.items() %}
+                    {% set cfg = impact_config.get(metric_key, {}) %}
+                    <div class="impact-pill">
+                        <span>{{ cfg.emoji or '🌟' }}</span>
+                        <span>{{ cfg.label or metric_key }}</span>
+                        <span class="impact-count">{{ total }}</span>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p style="color: var(--text-muted); font-size: 0.9rem;">No impact logged yet. Keep helping!</p>
+                {% endif %}
+            </div>
+
+            <!-- Next Milestone -->
+            {% if next_milestone %}
+            <div class="minimal-progress-card">
+                <div class="progress-header">
+                    <span>Next Goal: {{ next_milestone.title }}</span>
+                    <span>{{ total_impact_points }} / {{ next_milestone.threshold }} pts</span>
+                </div>
+                <div class="minimal-bar-bg">
+                    <div class="minimal-bar-fill" id="minimalBarFill" data-width="{{ next_milestone.progress }}"></div>
+                </div>
+                <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.75rem; font-weight: 500;">
+                    You need {{ next_milestone.threshold - total_impact_points }} more points to unlock.
+                </p>
+            </div>
+            {% endif %}
+
+            <!-- Rewards List -->
+            <h2 class="section-title"><span>🎁</span> My Prizes</h2>
+            {% if rewards %}
+                {% for reward in rewards %}
+                <div class="reward-minimal-card {{ reward.status }}">
+                    <div class="reward-info">
+                        <h3>{{ reward.reward_title }}</h3>
+                        <p>{{ reward.reward_value }}</p>
+                        {% if reward.status == 'claimed' %}
+                        <span class="reward-code-inline">{{ reward.reward_code }}</span>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="reward-action">
+                        {% if reward.status == 'unclaimed' %}
+                        <form action="{{ url_for('claim_reward', reward_id=reward.id) }}" method="POST">
+                            <button type="submit" class="reward-action-btn">Claim Now</button>
+                        </form>
+                        {% else %}
+                        <span class="claimed-status">
+                            <i class="fa fa-check-circle"></i> Claimed
+                        </span>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div style="padding: 2rem; border: 1px dashed var(--border); border-radius: 12px; text-align: center; color: var(--text-muted); font-size: 1rem;">
+                    Your prize list is empty. Reach 10 points to unlock your first one!
+                </div>
+            {% endif %}
+        </main>
+
+        <aside>
+            <div class="ladder-minimal">
+                <h3 style="font-size: 0.9rem; font-weight: 700; color: var(--text-main); margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 0.05em;">Reward Ladder</h3>
+                {% set milestones = [
+                    (10,   '🎰 Scratch Card',    'Mystery'),
+                    (25,   '🛒 Amazon ₹250',     '₹25'),
+                    (50,   '🛒 Amazon ₹500',     '₹50'),
+                    (100,  '💰 Cash Prize',      '₹100'),
+                    (200,  '💰 Cash Prize',      '₹200'),
+                    (500,  '🛒 Amazon ₹300',     '₹300'),
+                    (1000, '🏆 Grand Prize',     '₹500'),
+                ] %}
+                <div class="ladder-list">
+                    {% for threshold, name, value in milestones %}
+                        <div class="ladder-item {{ 'locked' if total_impact_points < threshold else '' }}">
+                            <div class="ladder-icon">
+                                {% if total_impact_points >= threshold %}
+                                <i class="fa fa-check-circle" style="color: var(--success); font-size: 0.8rem;"></i>
+                                {% else %}
+                                <i class="fa fa-lock" style="font-size: 0.7rem;"></i>
+                                {% endif %}
+                            </div>
+                            <div class="ladder-name">{{ name }}</div>
+                            <div class="ladder-pts">{{ threshold }} pts</div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </aside>
+    </div>
+</div>
+
+<script>
+window.addEventListener('DOMContentLoaded', () => {
+    const fill = document.getElementById('minimalBarFill');
+    if (fill) {
+        const w = fill.getAttribute('data-width');
+        setTimeout(() => { fill.style.width = w + '%'; }, 200);
+    }
+});
+</script>
+{% endblock %}

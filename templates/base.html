@@ -25,6 +25,7 @@
                         {% if session.get('role') == 'volunteer' %}
                             <a href="{{ url_for('view_ngos') }}" class="dropdown-link">Discover NGOs</a>
                             <a href="{{ url_for('make_application') }}" class="dropdown-link">Make an application</a>
+                            <a href="{{ url_for('my_rewards') }}" class="dropdown-link" style="color: #7c3aed; font-weight: 700;">🏆 My Rewards</a>
                         {% endif %}
                         {% if session.get('role') == 'ngo' %}
                             <a href="{{ url_for('view_volunteers') }}" class="dropdown-link">Discover Volunteers</a>

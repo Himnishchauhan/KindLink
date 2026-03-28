@@ -75,10 +75,51 @@
                 {% endif %}
             </div>
         </div>
+
+        <!-- Impact Points Card -->
+        {% set total_pts = user.impact_metrics | sum(attribute='metric_value') if user.impact_metrics else 0 %}
+        <div class="bento-item col-span-4" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: white; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;">
+            <div style="font-size: 3rem; margin-bottom: 0.5rem;">⚡</div>
+            <span style="font-size: 4rem; font-weight: 900; line-height: 1; letter-spacing: -2px; background: linear-gradient(135deg, #34d399, #6ee7b7); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">{{ total_pts }}</span>
+            <span style="font-size: 0.9rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.2em; margin-top: 0.75rem; opacity: 0.7;">Impact Points</span>
+            <p style="font-size: 0.8rem; opacity: 0.5; margin-top: 0.5rem; font-weight: 500;">From real-world missions</p>
+        </div>
+
+        <!-- Rewards Teaser Card -->
+        {% set unclaimed_rewards = user.rewards | selectattr('status', 'equalto', 'unclaimed') | list %}
+        <div class="bento-item col-span-8" style="background: linear-gradient(135deg, #fdf4ff 0%, #faf5ff 50%, #ede9fe 100%); border: 1px solid #e9d5ff; position: relative; overflow: hidden;">
+            <div style="position: absolute; top: -30px; right: -30px; width: 180px; height: 180px; background: rgba(167,139,250,0.15); border-radius: 50%; filter: blur(30px);"></div>
+            <div style="position: relative; z-index: 1; display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; flex-wrap: wrap;">
+                <div>
+                    <h4 style="font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.1em; color: #7c3aed; font-weight: 800; margin-bottom: 0.5rem;">🎁 My Rewards</h4>
+                    <p style="font-size: 1.5rem; font-weight: 900; color: #581c87; margin-bottom: 0.25rem;">
+                        {% if unclaimed_rewards %}
+                            {{ unclaimed_rewards|length }} Reward{{ 's' if unclaimed_rewards|length > 1 else '' }} Waiting!
+                        {% else %}
+                            Complete missions to earn rewards
+                        {% endif %}
+                    </p>
+                    <p style="font-size: 0.9rem; color: #7c3aed; font-weight: 500;">Amazon vouchers · Scratch cards · Cash prizes</p>
+                </div>
+                <a href="{{ url_for('my_rewards') }}" class="btn" style="background: linear-gradient(135deg, #7c3aed, #6d28d9); color: white; border: none; padding: 0.8rem 1.6rem; font-weight: 700; border-radius: 12px; white-space: nowrap; align-self: center; display: inline-flex; align-items: center; gap: 0.5rem; text-decoration: none;">
+                    🏆 View My Rewards
+                </a>
+            </div>
+            {% if unclaimed_rewards %}
+            <div style="margin-top: 1.25rem; display: flex; gap: 0.6rem; flex-wrap: wrap;">
+                {% for r in unclaimed_rewards[:3] %}
+                <span style="background: white; border: 1px solid #e9d5ff; color: #6d28d9; padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.8rem; font-weight: 700;">{{ r.reward_title }}</span>
+                {% endfor %}
+                {% if unclaimed_rewards|length > 3 %}
+                <span style="background: rgba(124,58,237,0.1); color: #7c3aed; padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.8rem; font-weight: 700;">+{{ unclaimed_rewards|length - 3 }} more</span>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
     </div>
 
     <!-- Matching Algorithm Section -->
-    <section class="matches-section">
+    <section class="matches-section" style="margin-top: 4rem;">
         <h3>Recommended Opportunities for You ✨</h3>
         <p class="section-desc">We found these matches based on your skills and interests.</p>
         
